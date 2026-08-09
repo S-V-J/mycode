@@ -36,3 +36,32 @@ def ensure_config() -> str:
         console.print(f"\n[bold green]✓ API Key securely saved to {ENV_FILE}[/bold green]\n")
         
     return api_key
+
+def find_mycode_md(start_path: Path) -> str:
+    """
+    Traverses up the directory tree from start_path to find a MYCODE.md file.
+    Returns the file content if found, otherwise an empty string.
+    """
+    current_dir = start_path.resolve()
+    
+    # Traverse up to the root directory
+    while current_dir != current_dir.parent:
+        target_file = current_dir / "MYCODE.md"
+        if target_file.exists():
+            try:
+                content = target_file.read_text(encoding="utf-8")
+                console.print(f"[dim]📖 Loaded project rules from {target_file}[/dim]")
+                return content
+            except Exception:
+                pass
+        current_dir = current_dir.parent
+        
+    # Check root directory one last time
+    target_file = current_dir / "MYCODE.md"
+    if target_file.exists():
+        try:
+            return target_file.read_text(encoding="utf-8")
+        except Exception:
+            pass
+            
+    return ""

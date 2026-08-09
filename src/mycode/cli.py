@@ -14,7 +14,7 @@ console = Console()
 def main():
     """Start the MyCode interactive CLI session."""
     console.print(Panel.fit(
-        "[bold green]MyCode v0.4.0 (RAG & Auto-Context)[/bold green]\n"
+        "[bold green]MyCode v0.5.0 (Production)[/bold green]\n"
         "[dim]Open-Source Agentic CLI | Powered by NVIDIA Nemotron[/dim]",
         border_style="blue"
     ))
