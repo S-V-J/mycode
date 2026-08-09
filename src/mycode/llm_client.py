@@ -1,10 +1,21 @@
 import json
-from openai import OpenAI, APIError, RateLimitError, APIConnectionError
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from openai import OpenAI, APIError, RateLimitError, APIConnectionError, APIStatusError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 from rich.console import Console
 from rich.markdown import Markdown
 
 console = Console()
+
+def is_nvidia_rate_limit(exception: Exception) -> bool:
+    """Custom predicate to catch standard rate limits AND NVIDIA's specific Worker limit."""
+    if isinstance(exception, (RateLimitError, APIConnectionError)):
+        return True
+    # NVIDIA returns ResourceExhausted as an APIStatusError (often 429 or 500)
+    if isinstance(exception, APIStatusError):
+        err_msg = str(exception)
+        if "ResourceExhausted" in err_msg or "Worker local" in err_msg:
+            return True
+    return False
 
 class NemotronClient:
     def __init__(self, api_key: str):
@@ -16,16 +27,17 @@ class NemotronClient:
 
     @retry(
         stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=1, min=2, max=15),
-        retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
-        before_sleep=lambda retry_state: console.print(f"\n[yellow]⚠ API Rate Limit/Connection Error. Retrying in {retry_state.next_action.sleep:.1f}s... (Attempt {retry_state.attempt_number}/5)[/yellow]")
+        # Increased wait times (4s, 8s, 16s) to allow NVIDIA's worker pool to reset
+        wait=wait_exponential(multiplier=2, min=4, max=30),
+        retry=retry_if_exception(is_nvidia_rate_limit),
+        before_sleep=lambda retry_state: console.print(f"\n[yellow]⚠ NVIDIA API Concurrency Limit Hit. Retrying in {retry_state.next_action.sleep:.1f}s... (Attempt {retry_state.attempt_number}/5)[/yellow]")
     )
     def _create_stream(self, messages, tools):
-        """Isolated API call to allow tenacity to retry on rate limits."""
+        """Isolated API call to allow tenacity to retry on NVIDIA gateway limits."""
         kwargs = {
             "model": self.model,
             "messages": messages,
-            "temperature": 0.7,
+            "temperature":0.7,
             "top_p": 0.95,
             "max_tokens": 4096,
             "stream": True,
@@ -42,8 +54,7 @@ class NemotronClient:
 
     def stream_chat(self, messages: list, tools: list = None) -> tuple[str, list]:
         """
-        Streams chat completion with automatic exponential backoff for rate limits.
-        Returns: (final_text_content, tool_calls_list)
+        Streams chat completion with automatic exponential backoff for NVIDIA limits.
         """
         try:
             stream = self._create_stream(messages, tools)
@@ -94,8 +105,13 @@ class NemotronClient:
                             tool_calls_dict[idx]["function"]["arguments"] += tc_delta.function.arguments
                             
         except Exception as e:
-            # Gracefully handle mid-stream drops without crashing the CLI
-            console.print(f"\n[yellow]⚠ Stream interrupted mid-generation: {e}[/yellow]")
+            # If the stream drops mid-generation due to a limit, we catch it gracefully.
+            # The agent loop will naturally retry the step on the next iteration if needed.
+            err_msg = str(e)
+            if "ResourceExhausted" in err_msg or "Worker local" in err_msg:
+                console.print(f"\n[yellow]⚠ Stream dropped due to NVIDIA concurrency limits. The agent will adapt.[/yellow]")
+            else:
+                console.print(f"\n[yellow]⚠ Stream interrupted mid-generation: {e}[/yellow]")
 
         final_tool_calls = list(tool_calls_dict.values())
         

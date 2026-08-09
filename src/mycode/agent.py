@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 from rich.console import Console
 from rich.markdown import Markdown
@@ -37,7 +38,6 @@ class Agent:
             return
 
         # --- PHASE 4: AUTO-CONTEXT RAG INJECTION ---
-        # Search the local codebase index for relevant chunks before asking the LLM
         rag_context = retrieve_context(user_input)
         if rag_context:
             self.messages[0]["content"] = self.base_prompt + "\n\n" + rag_context
@@ -96,6 +96,10 @@ class Agent:
                         "tool_call_id": tc["id"],
                         "content": observation
                     })
+                    
+                # --- NVIDIA FREE-TIER COOLDOWN ---
+                # Prevent hitting the 32 concurrent request limit by pausing before the next LLM call
+                time.sleep(1.5)
             else:
                 final_response = content
                 break
