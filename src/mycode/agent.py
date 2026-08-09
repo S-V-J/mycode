@@ -1,9 +1,11 @@
 import json
 from rich.console import Console
+from rich.markdown import Markdown
 from .llm_client import NemotronClient
 from .tools.schemas import TOOLS
 from .tools.bash import execute_bash
 from .tools.file_ops import read_file, write_file
+from .cache import check_cache, save_to_cache
 
 console = Console()
 
@@ -15,14 +17,24 @@ class Agent:
         ]
 
     def run(self, user_input: str):
+        # --- PHASE 3: SEMANTIC CACHE INTERCEPTOR ---
+        cached_result = check_cache(user_input)
+        if cached_result:
+            # Replay cached tool executions silently or just show the final answer
+            # For safety, we will just print the cached final response to avoid re-running destructive bash commands
+            console.print(Markdown(cached_result["response"]))
+            return
+
+        # --- STANDARD REACT LOOP (Cache Miss) ---
         self.messages.append({"role": "user", "content": user_input})
+        final_response = ""
+        executed_tools = []
         
         # Max 5 iterations to prevent infinite loops
         for i in range(5):
             content, tool_calls = self.client.stream_chat(self.messages, tools=TOOLS)
             
             if tool_calls:
-                # Append assistant message with tool calls
                 self.messages.append({
                     "role": "assistant",
                     "content": content or None,
@@ -38,7 +50,6 @@ class Agent:
                     ]
                 })
                 
-                # Execute tools and append observations
                 for tc in tool_calls:
                     name = tc["function"]["name"]
                     try:
@@ -57,7 +68,7 @@ class Agent:
                     else:
                         observation = f"Error: Unknown tool {name}"
                         
-                    # Truncate massive outputs for the terminal UI, but send full to LLM
+                    executed_tools.append({"name": name, "args": args, "obs": observation})
                     ui_obs = observation[:500] + "..." if len(observation) > 500 else observation
                     console.print(f"[dim]Observation: {ui_obs}[/dim]") 
                     
@@ -67,5 +78,9 @@ class Agent:
                         "content": observation
                     })
             else:
-                # No tool calls, the agent is done and provided a final answer
+                final_response = content
                 break
+
+        # --- PHASE 3: POST-EXECUTION CACHE SAVE ---
+        if final_response:
+            save_to_cache(user_input, final_response, executed_tools)
