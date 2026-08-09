@@ -1,0 +1,62 @@
+# ==============================================================================
+# MyCode .gitignore
+# Purpose: Prevent sensitive credentials, local ML databases, and Python 
+# artifacts from being committed to the public GitHub repository.
+# ==============================================================================
+
+# --- 1. Environment & Secrets (CRITICAL) ---
+# Never commit API keys or local environment overrides
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- 2. Python Artifacts & Virtual Environments ---
+# Ignore virtual environments to prevent pushing massive binary folders
+venv/
+env/
+ENV/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- 3. Local ML & Databases (MyCode Specific) ---
+# Ignore local vector databases and SQLite history caches
+.chroma/
+chroma_data/
+*.sqlite3
+*.db
+*.sqlite
+mycode_cache/
+*.bin
+*.pt
+*.onnx
+
+# --- 4. IDE, Editor & OS Files ---
+# Ignore local editor configs and OS generated files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
