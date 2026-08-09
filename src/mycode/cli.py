@@ -3,6 +3,7 @@ from rich.console import Console
 from rich.panel import Panel
 from .config import ensure_config
 from .llm_client import NemotronClient
+from .agent import Agent
 
 app = typer.Typer(help="MyCode: Open-Source Agentic CLI")
 console = Console()
@@ -11,21 +12,14 @@ console = Console()
 def main():
     """Start the MyCode interactive CLI session."""
     console.print(Panel.fit(
-        "[bold green]MyCode v0.1.0[/bold green]\n"
+        "[bold green]MyCode v0.2.0 (Agentic)[/bold green]\n"
         "[dim]Open-Source Agentic CLI | Powered by NVIDIA Nemotron[/dim]",
         border_style="blue"
     ))
     
-    # 1. Secure Configuration & API Key Retrieval
     api_key = ensure_config()
-    
-    # 2. Initialize LLM Client
     client = NemotronClient(api_key)
-    
-    # 3. Interactive Agentic Loop (Phase 1: Basic Chat)
-    messages = [
-        {"role": "system", "content": "You are MyCode, an elite autonomous coding assistant. Think step-by-step."}
-    ]
+    agent = Agent(client)
     
     console.print("\n[bold cyan]Ready.[/bold cyan] Type your request or [yellow]/exit[/yellow] to quit.\n")
     
@@ -40,13 +34,7 @@ def main():
             if not user_input.strip():
                 continue
                 
-            messages.append({"role": "user", "content": user_input})
-            
-            console.print() # Spacing before response
-            response = client.stream_chat(messages)
-            
-            if response:
-                messages.append({"role": "assistant", "content": response})
+            agent.run(user_input)
                 
         except KeyboardInterrupt:
             console.print("\n[yellow]Interrupted. Type /exit to quit.[/yellow]")
