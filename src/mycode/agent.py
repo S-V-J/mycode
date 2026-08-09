@@ -6,24 +6,33 @@ from .tools.schemas import TOOLS
 from .tools.bash import execute_bash
 from .tools.file_ops import read_file, write_file
 from .cache import check_cache, save_to_cache
+from .rag import retrieve_context
 
 console = Console()
+
+BASE_SYSTEM_PROMPT = "You are MyCode, an elite autonomous coding assistant. You have access to tools to interact with the local WSL system. Think step-by-step, use tools to gather information or make changes, and provide a final markdown response when done."
 
 class Agent:
     def __init__(self, client: NemotronClient):
         self.client = client
         self.messages = [
-            {"role": "system", "content": "You are MyCode, an elite autonomous coding assistant. You have access to tools to interact with the local WSL system. Think step-by-step, use tools to gather information or make changes, and provide a final markdown response when done."}
+            {"role": "system", "content": BASE_SYSTEM_PROMPT}
         ]
 
     def run(self, user_input: str):
         # --- PHASE 3: SEMANTIC CACHE INTERCEPTOR ---
         cached_result = check_cache(user_input)
         if cached_result:
-            # Replay cached tool executions silently or just show the final answer
-            # For safety, we will just print the cached final response to avoid re-running destructive bash commands
             console.print(Markdown(cached_result["response"]))
             return
+
+        # --- PHASE 4: AUTO-CONTEXT RAG INJECTION ---
+        # Search the local codebase index for relevant chunks before asking the LLM
+        rag_context = retrieve_context(user_input)
+        if rag_context:
+            self.messages[0]["content"] = BASE_SYSTEM_PROMPT + "\n\n" + rag_context
+        else:
+            self.messages[0]["content"] = BASE_SYSTEM_PROMPT
 
         # --- STANDARD REACT LOOP (Cache Miss) ---
         self.messages.append({"role": "user", "content": user_input})

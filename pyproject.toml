@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mycode"
-version = "0.3.0"
+version = "0.4.0"
 description = "An open-source, locally-hosted agentic CLI for autonomous coding."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,7 +21,12 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "chromadb>=0.5.0",
-    "sentence-transformers>=3.0.0"
+    "sentence-transformers>=3.0.0",
+    "tree-sitter>=0.21.0",
+    "tree-sitter-python>=0.21.0",
+    "tree-sitter-javascript>=0.21.0",
+    "tree-sitter-typescript>=0.21.0",
+    "watchdog>=3.0.0"
 ]
 
 [project.scripts]
