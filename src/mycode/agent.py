@@ -15,6 +15,38 @@ console = Console()
 
 BASE_SYSTEM_PROMPT = "You are MyCode, an elite autonomous coding assistant. You have access to tools to interact with the local WSL system. Think step-by-step, use tools to gather information or make changes, and provide a final markdown response when done."
 
+def get_dynamic_params(user_input: str, iteration: int) -> dict:
+    """
+    Context-Aware Dynamic Routing: Scales parameters based on prompt complexity and ReAct depth.
+    """
+    # Base parameters (Fast, deterministic, avoids rate limits)
+    params = {
+        "temperature": 0.2,
+        "max_tokens": 4096,
+        "reasoning_budget": 2048
+    }
+    
+    # Complexity triggers
+    complex_keywords = [
+        "refactor", "architecture", "debug", "traceback", "complex", 
+        "entire", "all files", "multi-file", "optimize", "security", 
+        "vulnerability", "design", "plan", "why", "how does", "analyze"
+    ]
+    
+    is_complex = (
+        len(user_input) > 150 or 
+        any(kw in user_input.lower() for kw in complex_keywords) or
+        iteration >= 2  # Deep in the ReAct loop means it's struggling or doing multi-step work
+    )
+    
+    if is_complex:
+        # UNLOCK RAW POWER (Maximum capabilities)
+        params["temperature"] = 1.0
+        params["max_tokens"] = 16384
+        params["reasoning_budget"] = 16384
+        
+    return params
+
 class Agent:
     def __init__(self, client: NemotronClient):
         self.client = client
@@ -49,9 +81,13 @@ class Agent:
         final_response = ""
         executed_tools = []
         
-        # Max 5 iterations to prevent infinite loops
-        for i in range(5):
-            content, tool_calls = self.client.stream_chat(self.messages, tools=TOOLS)
+        # Max 10 iterations to allow for deep, complex agentic workflows
+        for i in range(10):
+            # --- SMART SYSTEM: DYNAMIC PARAMETER ROUTING ---
+            params = get_dynamic_params(user_input, i)
+            console.print(f"[dim]⚙️ Smart Routing: temp={params['temperature']}, max_tokens={params['max_tokens']}, reasoning_budget={params['reasoning_budget']}[/dim]")
+            
+            content, tool_calls = self.client.stream_chat(self.messages, tools=TOOLS, params=params)
             
             if tool_calls:
                 self.messages.append({
@@ -98,7 +134,6 @@ class Agent:
                     })
                     
                 # --- NVIDIA FREE-TIER COOLDOWN ---
-                # Prevent hitting the 32 concurrent request limit by pausing before the next LLM call
                 time.sleep(1.5)
             else:
                 final_response = content

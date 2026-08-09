@@ -10,7 +10,6 @@ def is_nvidia_rate_limit(exception: Exception) -> bool:
     """Custom predicate to catch standard rate limits AND NVIDIA's specific Worker limit."""
     if isinstance(exception, (RateLimitError, APIConnectionError)):
         return True
-    # NVIDIA returns ResourceExhausted as an APIStatusError (often 429 or 500)
     if isinstance(exception, APIStatusError):
         err_msg = str(exception)
         if "ResourceExhausted" in err_msg or "Worker local" in err_msg:
@@ -27,23 +26,22 @@ class NemotronClient:
 
     @retry(
         stop=stop_after_attempt(5),
-        # Increased wait times (4s, 8s, 16s) to allow NVIDIA's worker pool to reset
         wait=wait_exponential(multiplier=2, min=4, max=30),
         retry=retry_if_exception(is_nvidia_rate_limit),
         before_sleep=lambda retry_state: console.print(f"\n[yellow]⚠ NVIDIA API Concurrency Limit Hit. Retrying in {retry_state.next_action.sleep:.1f}s... (Attempt {retry_state.attempt_number}/5)[/yellow]")
     )
-    def _create_stream(self, messages, tools):
-        """Isolated API call to allow tenacity to retry on NVIDIA gateway limits."""
+    def _create_stream(self, messages, tools, params):
+        """Isolated API call with dynamic parameter injection."""
         kwargs = {
             "model": self.model,
             "messages": messages,
-            "temperature":0.7,
+            "temperature": params.get("temperature", 0.7),
             "top_p": 0.95,
-            "max_tokens": 4096,
+            "max_tokens": params.get("max_tokens", 4096),
             "stream": True,
             "extra_body": {
                 "chat_template_kwargs": {"enable_thinking": True},
-                "reasoning_budget": 4096
+                "reasoning_budget": params.get("reasoning_budget", 4096)
             }
         }
         if tools:
@@ -52,12 +50,13 @@ class NemotronClient:
             
         return self.client.chat.completions.create(**kwargs)
 
-    def stream_chat(self, messages: list, tools: list = None) -> tuple[str, list]:
-        """
-        Streams chat completion with automatic exponential backoff for NVIDIA limits.
-        """
+    def stream_chat(self, messages: list, tools: list = None, params: dict = None) -> tuple[str, list]:
+        """Streams chat completion with dynamic parameter routing."""
+        if params is None:
+            params = {"temperature": 0.7, "max_tokens": 4096, "reasoning_budget": 4096}
+            
         try:
-            stream = self._create_stream(messages, tools)
+            stream = self._create_stream(messages, tools, params)
         except Exception as e:
             console.print(f"\n[bold red]API Error after retries:[/bold red] {e}")
             return "", []
@@ -105,8 +104,6 @@ class NemotronClient:
                             tool_calls_dict[idx]["function"]["arguments"] += tc_delta.function.arguments
                             
         except Exception as e:
-            # If the stream drops mid-generation due to a limit, we catch it gracefully.
-            # The agent loop will naturally retry the step on the next iteration if needed.
             err_msg = str(e)
             if "ResourceExhausted" in err_msg or "Worker local" in err_msg:
                 console.print(f"\n[yellow]⚠ Stream dropped due to NVIDIA concurrency limits. The agent will adapt.[/yellow]")
@@ -115,7 +112,6 @@ class NemotronClient:
 
         final_tool_calls = list(tool_calls_dict.values())
         
-        # Render final content as Markdown (Only if no tool calls were made)
         if content_text and not final_tool_calls:
             console.print() 
             console.print(Markdown(content_text))
