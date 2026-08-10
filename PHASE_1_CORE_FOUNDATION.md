@@ -21,7 +21,8 @@
 - ✅ **PLAN** - Multi-step plan generation + TUI modal approval
 - ✅ **MANUAL** - Pair-programmer mode (tools disabled)
 - ✅ **AEROPLANE** - Offline mode (cache + RAG only, zero API calls)
-- ❌ acceptEdits (integrated as F4 toggle), dontAsk, bypassPermissions
+- ✅ **acceptEdits** - Integrated as F4 toggle (Accept/Reject Edits)
+- ❌ dontAsk (auto-approve all), bypassPermissions (skip all safety checks)
 
 ### Streaming & Reasoning (1)
 - ✅ Nemotron `enable_thinking` → `reasoning_content` stream (dim/italic) + content (Markdown)
