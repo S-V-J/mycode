@@ -125,10 +125,52 @@ To build a 100% functioning alternative, we replicated the following core mechan
 - Persistent path: `~/.mycode/rag_data/`
 - Embedding: `all-MiniLM-L6-v2` (same as cache for consistency)
 
-### D. Memory & State
+### D. Memory & State ✅ **100% IMPLEMENTED**
 - **Project Memory (`MYCODE.md`):** A markdown file in the project root containing architecture rules, preferred libraries, and coding standards. Automatically injected into the system prompt via directory traversal.
 - **Session State:** Multi-session chat history with SQLite persistence, remembering file changes across terminal restarts.
 - **Semantic Cache:** ChromaDB + SQLite with file-hash validation for instant cache hits.
+
+#### Technical Implementation Details
+
+**Project Memory Injection (`src/mycode/core/config.py` - `find_mycode_md`):**
+- Traverses up directory tree from CWD to root
+- Returns first `MYCODE.md` found (closest to CWD wins)
+- Injected into system prompt at `Agent.__init__()` and `Agent.set_mode()`
+- Format: `PROJECT RULES & CONTEXT (from MYCODE.md):\n{content}`
+
+**Session Management (`src/mycode/core/cache.py` - SQLite):**
+- **Tables:** `sessions` (id, name, project_path, timestamps), `messages` (id, session_id, role, content, tool_calls, timestamp)
+- **Functions:** `create_session`, `get_sessions`, `get_session`, `update_session_name`, `delete_session`, `add_message`, `get_messages`, `get_or_create_default_session`
+- **Persistence:** `~/.mycode/history.db` with foreign key constraints
+- **TUI Integration:** Left sidebar (`SessionTree`) displays sessions, allows create/switch/delete
+
+**Semantic Cache (`src/mycode/core/cache.py` - ChromaDB + SQLite):**
+- **Vector Store:** ChromaDB collection `mycode_trajectories` at `~/.mycode/chroma_data/`
+- **Embedding:** `all-MiniLM-L6-v2` (local, via SentenceTransformers)
+- **Relational Metadata:** SQLite `trajectories` table (id, prompt, response, tool_calls, file_hashes, timestamp)
+- **File Hash Validation:** MD5 hashes of all files touched during trajectory stored in `file_hashes` JSON column
+- **Cache Interceptor (`check_cache`):**
+  1. Embed prompt → query ChromaDB (cosine similarity)
+  2. Threshold: >0.92 = candidate hit
+  3. Fetch SQLite row → validate file hashes against current filesystem
+  4. If hashes match → return cached response (bypass LLM)
+  5. If hashes differ → invalidate, return None (force LLM)
+  6. Borderline 0.85-0.92 → micro-validation heuristic
+- **Cache Save (`save_to_cache`):**
+  1. Extract file paths from tool calls (`read_file`, `write_file`, `edit_file`)
+  2. Compute current MD5 hashes
+  3. Add to ChromaDB + insert SQLite row with hashes
+- **Cache Invalidation (`invalidate_cache_for_file`):**
+  1. Called by Watchdog on file modify/create/delete
+  2. Scan all trajectories for matching file path in `file_hashes`
+  3. Delete from ChromaDB + SQLite
+  4. Log invalidated count
+
+**Storage Paths:**
+- `~/.mycode/.env` - API key (0600 permissions)
+- `~/.mycode/chroma_data/` - Cache trajectories vector DB
+- `~/.mycode/rag_data/` - Codebase index vector DB (separate collection)
+- `~/.mycode/history.db` - SQLite (sessions, messages, trajectories metadata)
 
 ---
 
