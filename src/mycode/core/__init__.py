@@ -26,6 +26,49 @@ from .modes import (
     get_mode_from_string,
     cycle_mode
 )
+from .hooks import (
+    HookRegistry,
+    HookExecutor,
+    HookEvent,
+    HookHandlerType,
+    HookConfig,
+    HookContext,
+    get_hook_registry,
+    get_hook_executor,
+    fire_hook,
+    fire_hook_sync
+)
+from .scheduler import (
+    Scheduler,
+    ScheduledJob,
+    get_scheduler,
+    cron_create,
+    cron_delete,
+    cron_list,
+    loop_create,
+    reminder_create
+)
+from .checkpoints import (
+    CheckpointManager,
+    DeepLinkManager,
+    Checkpoint,
+    get_checkpoint_manager,
+    get_deep_link_manager,
+    checkpoint_create,
+    checkpoint_list,
+    checkpoint_restore,
+    checkpoint_delete,
+    deeplink_create,
+    deeplink_resolve,
+    deeplink_list
+)
+from .headless import (
+    HeadlessRunner,
+    HeadlessConfig,
+    HeadlessResponse,
+    run_headless_sync,
+    run_headless
+)
 
 __all__ = [
     "ensure_config",
@@ -54,4 +97,39 @@ __all__ = [
     "is_destructive_bash",
     "get_mode_from_string",
     "cycle_mode",
+    "HookRegistry",
+    "HookExecutor",
+    "HookEvent",
+    "HookHandlerType",
+    "HookConfig",
+    "HookContext",
+    "get_hook_registry",
+    "get_hook_executor",
+    "fire_hook",
+    "fire_hook_sync",
+    "Scheduler",
+    "ScheduledJob",
+    "get_scheduler",
+    "cron_create",
+    "cron_delete",
+    "cron_list",
+    "loop_create",
+    "reminder_create",
+    "CheckpointManager",
+    "DeepLinkManager",
+    "Checkpoint",
+    "get_checkpoint_manager",
+    "get_deep_link_manager",
+    "checkpoint_create",
+    "checkpoint_list",
+    "checkpoint_restore",
+    "checkpoint_delete",
+    "deeplink_create",
+    "deeplink_resolve",
+    "deeplink_list",
+    "HeadlessRunner",
+    "HeadlessConfig",
+    "HeadlessResponse",
+    "run_headless_sync",
+    "run_headless",
 ]
