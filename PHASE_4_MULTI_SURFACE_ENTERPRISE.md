@@ -89,6 +89,10 @@
 | 7 | Security scanning | Plugin-based security review |
 | 8 | Code review | `/code-review` with custom rules |
 
+### Core Tools for Phase 4 (2/15)
+- ❌ **PowerShell** - Windows PowerShell support → **Phase 4**
+- ❌ **Agent** - Subagent spawning → **Phase 4**
+
 ---
 
 ## Implementation Priority

@@ -73,6 +73,10 @@
 | 2 | Relay permission prompts | Forward prompts to chat bridge |
 | 3 | Notification format | Standardized event schema |
 
+### Core Tools for Phase 3 (2/15)
+- ❌ **LSP** - Language Server Protocol integration → **Phase 3**
+- ❌ **NotebookEdit** - Jupyter notebook editing → **Phase 3**
+
 ---
 
 ## Implementation Plan

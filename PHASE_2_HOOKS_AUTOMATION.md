@@ -69,6 +69,11 @@
 | 1 | Checkpointing | Rewind, summarize, auto-track | Session state snapshots + `/rewind` |
 | 2 | Deep links | Session URLs (cwd/repo) | `mycode://session/{id}` protocol |
 
+### Core Tools for Phase 2 (3/15)
+- ❌ **AskUserQuestion** - Interactive user prompts → **Phase 2**
+- ❌ **EndConversation** - Session termination control → **Phase 2**
+- ❌ **Monitor** - Background process monitoring → **Phase 2**
+
 ---
 
 ## Implementation Plan

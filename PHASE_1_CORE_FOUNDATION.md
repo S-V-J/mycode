@@ -16,7 +16,13 @@
 - ✅ `grep` - Search for patterns in files with regex
 - ✅ `web_search` - DuckDuckGo search
 - ✅ `fetch_url` - HTTP fetch with markdownify conversion
-- ❌ LSP, Monitor, NotebookEdit, PowerShell, Agent, AskUserQuestion, EndConversation
+- ❌ **LSP** - Language Server Protocol integration → **Phase 3**
+- ❌ **Monitor** - Background process monitoring → **Phase 2**
+- ❌ **NotebookEdit** - Jupyter notebook editing → **Phase 3**
+- ❌ **PowerShell** - Windows PowerShell support → **Phase 4**
+- ❌ **Agent** - Subagent spawning → **Phase 4**
+- ❌ **AskUserQuestion** - Interactive user prompts → **Phase 2**
+- ❌ **EndConversation** - Session termination control → **Phase 2**
 
 ### Operational Modes (6/6)
 - ✅ **AUTO** - Full autonomous execution
