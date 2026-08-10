@@ -8,7 +8,7 @@ from rich.prompt import Confirm
 from .llm_client import NemotronClient
 from mycode.tools.schemas import TOOLS
 from mycode.tools.bash import execute_bash
-from mycode.tools.file_ops import read_file, write_file, edit_file
+from mycode.tools.file_ops import read_file, write_file, edit_file, glob_tool, grep_tool
 from mycode.tools.web import web_search, fetch_url
 from .cache import check_cache, save_to_cache
 from .rag import retrieve_context
@@ -223,6 +223,10 @@ class Agent:
             return write_file(args.get("path", ""), args.get("content", ""))
         elif name == "edit_file":
             return edit_file(args.get("path", ""), args.get("old_str", ""), args.get("new_str", ""))
+        elif name == "glob":
+            return glob_tool(args.get("pattern", ""), args.get("path", "."))
+        elif name == "grep":
+            return grep_tool(args.get("pattern", ""), args.get("path", "."), args.get("include"))
         elif name == "web_search":
             return web_search(args.get("query", ""), args.get("max_results", 5))
         elif name == "fetch_url":

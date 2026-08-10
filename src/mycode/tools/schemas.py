@@ -63,6 +63,37 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "glob",
+            "description": "Find files matching a glob pattern. Use for discovering files in the codebase.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pattern": {"type": "string", "description": "The glob pattern to match (e.g., '**/*.py', 'src/**/*.js')."},
+                    "path": {"type": "string", "description": "The directory to search in (default: current working directory)."}
+                },
+                "required": ["pattern"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "grep",
+            "description": "Search for a pattern in files. Use for finding code, text, or patterns across the codebase.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pattern": {"type": "string", "description": "The regex pattern to search for."},
+                    "path": {"type": "string", "description": "The directory to search in (default: current working directory)."},
+                    "include": {"type": "string", "description": "File pattern to include (e.g., '*.py', '*.js')."}
+                },
+                "required": ["pattern"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "web_search",
             "description": "Search the web using DuckDuckGo. Use for finding documentation, StackOverflow answers, GitHub issues, or any live information.",
             "parameters": {

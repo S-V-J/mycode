@@ -7,14 +7,16 @@
 ### Agentic Loop (1)
 - ✅ ReAct agentic loop (10 iterations max) with Thought→Action→Observation→Iteration
 
-### Core Tools (6/15)
+### Core Tools (8/15)
 - ✅ `bash` - Sandboxed subprocess with 30s timeout, destructive command interception
 - ✅ `read_file` - Read file with line numbers
 - ✅ `write_file` - Write/overwrite files
 - ✅ `edit_file` - Surgical diff replacement (search/replace blocks)
+- ✅ `glob` - Find files matching glob patterns
+- ✅ `grep` - Search for patterns in files with regex
 - ✅ `web_search` - DuckDuckGo search
 - ✅ `fetch_url` - HTTP fetch with markdownify conversion
-- ❌ Glob, Grep, LSP, Monitor, NotebookEdit, PowerShell, Agent, AskUserQuestion, EndConversation
+- ❌ LSP, Monitor, NotebookEdit, PowerShell, Agent, AskUserQuestion, EndConversation
 
 ### Operational Modes (6/6)
 - ✅ **AUTO** - Full autonomous execution
@@ -103,8 +105,8 @@
 ## Verification Checklist ✅
 - [x] `mycode` starts, prompts for API key, saves to `~/.mycode/.env` (0600)
 - [x] Streaming shows reasoning (dim/italic) → content (Markdown) without corruption
-- [x] Tools execute: bash, read_file, write_file, edit_file, web_search, fetch_url
-- [x] Modes toggle: F3 (AUTO→PLAN→MANUAL→AEROPLANE), F4 (Accept Edits)
+- [x] Tools execute: bash, read_file, write_file, edit_file, glob, grep, web_search, fetch_url
+- [x] Modes toggle: F3 (AUTO→PLAN→MANUAL→AEROPLANE→DONT_ASK→BYPASS_PERMISSIONS), F4 (Accept Edits)
 - [x] Cache hit: Repeat query returns "Cache Hit" with sub-100ms response
 - [x] Cache invalidation: Modify file → cache entries for that file invalidated
 - [x] RAG context: Coding questions inject relevant codebase chunks

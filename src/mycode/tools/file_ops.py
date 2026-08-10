@@ -1,5 +1,7 @@
 from pathlib import Path
 import difflib
+import glob as glob_module
+import re
 
 def read_file(path: str) -> str:
     """Reads a file from the local filesystem."""
@@ -81,3 +83,80 @@ def edit_file(path: str, old_str: str, new_str: str) -> str:
         return f"Successfully edited {p}\n\nDiff:\n```diff\n{diff_output}\n```"
     except Exception as e:
         return f"Error editing file: {str(e)}"
+
+
+def glob_tool(pattern: str, path: str = ".") -> str:
+    """
+    Find files matching a glob pattern.
+
+    Args:
+        pattern: The glob pattern to match (e.g., '**/*.py', 'src/**/*.js')
+        path: The directory to search in (default: current working directory)
+
+    Returns:
+        List of matching file paths
+    """
+    try:
+        search_path = Path(path).expanduser().resolve()
+        if not search_path.exists():
+            return f"Error: Path not found: {path}"
+
+        # Use glob with recursive=True for ** patterns
+        matches = list(search_path.rglob(pattern)) if "**" in pattern else list(search_path.glob(pattern))
+
+        if not matches:
+            return f"No files found matching pattern: {pattern}"
+
+        # Return relative paths from the search directory
+        relative_matches = [str(m.relative_to(search_path)) for m in matches]
+        return f"Found {len(matches)} file(s):\n" + "\n".join(sorted(relative_matches))
+    except Exception as e:
+        return f"Error running glob: {str(e)}"
+
+
+def grep_tool(pattern: str, path: str = ".", include: str = None) -> str:
+    """
+    Search for a pattern in files.
+
+    Args:
+        pattern: The regex pattern to search for
+        path: The directory to search in (default: current working directory)
+        include: File pattern to include (e.g., '*.py', '*.js')
+
+    Returns:
+        Matching lines with file paths and line numbers
+    """
+    try:
+        search_path = Path(path).expanduser().resolve()
+        if not search_path.exists():
+            return f"Error: Path not found: {path}"
+
+        # Compile regex
+        try:
+            regex = re.compile(pattern)
+        except re.error as e:
+            return f"Error: Invalid regex pattern: {e}"
+
+        # Determine files to search
+        if include:
+            files = list(search_path.rglob(include))
+        else:
+            files = [f for f in search_path.rglob("*") if f.is_file()]
+
+        matches = []
+        for file_path in files:
+            try:
+                content = file_path.read_text(encoding='utf-8', errors='ignore')
+                for line_num, line in enumerate(content.splitlines(), 1):
+                    if regex.search(line):
+                        rel_path = file_path.relative_to(search_path)
+                        matches.append(f"{rel_path}:{line_num}: {line.strip()}")
+            except Exception:
+                continue  # Skip binary/unreadable files
+
+        if not matches:
+            return f"No matches found for pattern: {pattern}"
+
+        return f"Found {len(matches)} match(es):\n" + "\n".join(matches[:100]) + ("\n... (truncated)" if len(matches) > 100 else "")
+    except Exception as e:
+        return f"Error running grep: {str(e)}"
