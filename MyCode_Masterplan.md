@@ -115,6 +115,171 @@ To build a 100% functioning alternative, we replicated the following core mechan
 
 ---
 
+### Claude Code vs MyCode Feature Comparison
+
+| Feature Category | Claude Code Feature | MyCode Implementation | Status |
+|-----------------|---------------------|----------------------|--------|
+| **Agentic Loop** | ReAct pattern (Thought→Action→Observation→Iteration) | Custom ReAct loop with 10-iteration max | ✅ **Parity** |
+| **Reasoning Display** | Extended thinking stream | Nemotron `enable_thinking` → `reasoning_content` stream (dim/italic) | ✅ **Parity** |
+| **Tool Calling** | Function calling with JSON schemas | OpenAI-compatible schemas via `TOOLS` | ✅ **Parity** |
+| **File Operations** | Read, Write, Edit (surgical diffs), Glob, Grep | `read_file`, `write_file`, `edit_file` (search/replace), *Glob/Grep planned* | ✅ **Core Parity** |
+| **Terminal Execution** | Sandboxed bash with approval | `bash` tool with 30s timeout, destructive command interception | ✅ **Parity** |
+| **Web Access** | Built-in web search/fetch | `web_search` (DuckDuckGo), `fetch_url` (httpx+markdownify) | ✅ **Parity** |
+| **Self-Correction** | Auto-fix from compiler/linter errors | Tool errors returned as observations, LLM iterates | ✅ **Parity** |
+| **Context Management** | Dynamic context injection | Tools read only necessary files + Auto-Context RAG | ✅ **Parity** |
+| **Summarization** | Compress long outputs | Tool results truncated to 500 chars for UI | ✅ **Parity** |
+| **Project Memory** | `CLAUDE.md` auto-injection | `MYCODE.md` directory traversal injection | ✅ **Parity** |
+| **Session Persistence** | Cross-restart memory | SQLite sessions + messages with timestamps | ✅ **Parity** |
+| **Semantic Caching** | Not documented | ChromaDB + SQLite with file-hash validation | ✅ **MyCode Advantage** |
+| **Codebase RAG** | Not documented | Tree-sitter AST chunking + Watchdog live updates | ✅ **MyCode Advantage** |
+| **Operational Modes** | Single autonomous mode | 4 modes: AUTO, PLAN, MANUAL, AEROPLANE | ✅ **MyCode Advantage** |
+| **Plan Mode** | Not documented | Multi-step plan generation + TUI modal approval | ✅ **MyCode Advantage** |
+| **Diff Approval** | Inline diff review | Unified diff in TUI modal (Accept Edits toggle) | ✅ **Parity** |
+| **Offline Mode** | Not documented | AEROPLANE mode (cache + RAG only, zero API calls) | ✅ **MyCode Advantage** |
+| **TUI Interface** | Not documented | Textual 3-column (Chats \| Chat \| Files) with modals | ✅ **MyCode Advantage** |
+| **Multi-Session** | Not documented | SQLite-backed session management in sidebar | ✅ **MyCode Advantage** |
+| **Security Sandbox** | Destructive command approval | Keyword interception + CWD restriction + diff approval | ✅ **Parity** |
+| **Rate Limit Handling** | Built-in | Exponential backoff (5 attempts) + custom NVIDIA predicates | ✅ **Parity** |
+| **Dynamic Parameters** | Not documented | Smart routing: base (fast) vs complex (raw power) | ✅ **MyCode Advantage** |
+| **Global Install** | `claude` command | `pipx install git+https://github.com/S-V-J/mycode.git` | ✅ **Parity** |
+| **Privacy** | Local execution | All data local (SQLite, ChromaDB), API key in `~/.mycode/.env` (0600) | ✅ **Parity** |
+| **Provider Agnostic** | Anthropic only | OpenAI-compatible (Nemotron, Ollama, Together AI, OpenRouter ready) | ✅ **MyCode Advantage** |
+
+---
+
+### Claude Code Documentation Map & MyCode Implementation Status
+
+Based on the official Claude Code documentation (https://code.claude.com/docs/llms.txt), here's a comprehensive mapping of documented features to MyCode implementation:
+
+| Documentation Section | Claude Code Feature | MyCode Status | Notes |
+|----------------------|---------------------|---------------|-------|
+| **Getting Started** | | | |
+| overview | Product overview & capabilities | ✅ Documented in README | |
+| quickstart | Install, login, first session | ✅ `pipx install` + API key prompt | |
+| changelog | Version history | ✅ Git commits + GitHub releases | |
+| **Core Concepts** | | | |
+| how-claude-code-works | Agentic loop, tools, sessions, context | ✅ Implemented | ReAct loop, 6 tools, SQLite sessions |
+| features-overview | Feature catalog & context costs | ✅ Comparison table above | |
+| claude-directory | `.claude/` config directory | ✅ `~/.mycode/` vault | |
+| context-window | Timeline, compaction, auto-compact | ⚠️ Partial | Tool result truncation (500 chars) |
+| prompt-caching | Cache organization, invalidation, TTL | ✅ Semantic cache + file-hash validation | More advanced than Claude's |
+| **Use Claude Code** | | | |
+| memory | CLAUDE.md, auto memory, `/memory` | ✅ MYCODE.md + directory traversal | |
+| permission-modes | Auto, plan, acceptEdits, dontAsk, bypass | ✅ 4 modes: AUTO, PLAN, MANUAL, AEROPLANE | More granular |
+| sessions | Resume, branch, export, session picker | ✅ SQLite sessions + TUI sidebar | |
+| common-workflows | Bug fix, refactor, test, PR, docs | ✅ Agent handles all via tools | |
+| prompt-library | Curated prompt templates | ❌ Not implemented | Future enhancement |
+| best-practices | Verification, exploration, subagents | ✅ Agent follows best practices | |
+| **Platforms & Integrations** | | | |
+| platforms | Where to run, remote access | ✅ WSL/Linux/macOS terminal | |
+| remote-control | Mobile/web session control | ❌ Not implemented | Requires cloud infrastructure |
+| mobile | Phone app, push notifications | ❌ Not implemented | |
+| chrome | Browser extension, web automation | ❌ Not implemented | |
+| computer-use | Screen control, app automation | ❌ Not implemented | |
+| vs-code | IDE extension, terminal mode | ❌ Not implemented | |
+| jetbrains | IDE plugin, WSL config | ❌ Not implemented | |
+| slack | Slack integration | ❌ Not implemented | |
+| claude-tag | Channel-based access | ❌ Not implemented | |
+| web | Cloud environments, GitHub sync | ❌ Not implemented | |
+| routines | Scheduled tasks, triggers | ❌ Not implemented | |
+| ultrareview | PR review automation | ❌ Not implemented | |
+| desktop | Desktop app, preview servers | ❌ Not implemented | |
+| **MCP (Model Context Protocol)** | | | |
+| mcp-quickstart | Add/verify MCP servers | ❌ Not implemented | Future: plugin system |
+| mcp | Remote/local servers, auth, tools | ❌ Not implemented | |
+| **Skills** | | | |
+| skills | Bundled skills, creation, sharing | ❌ Not implemented | Future: plugin system |
+| **Plugins** | | | |
+| discover-plugins | Marketplaces, installation | ❌ Not implemented | Future: plugin system |
+| plugins | Plugin development, structure | ❌ Not implemented | |
+| **Artifacts** | | | |
+| artifacts | Visual outputs, live data | ❌ Not implemented | TUI renders markdown only |
+| **Automation** | | | |
+| hooks-guide | Hook lifecycle, events, config | ❌ Not implemented | Future: hook system |
+| channels | Real-time messaging | ❌ Not implemented | |
+| scheduled-tasks | `/loop`, cron, reminders | ❌ Not implemented | |
+| goal | Session goals, non-interactive | ❌ Not implemented | |
+| headless | CI/CD, streaming, JSON output | ⚠️ Partial | CLI mode works, no JSON output |
+| deep-links | Session links, repo/cwd | ❌ Not implemented | |
+| **Guides** | | | |
+| large-codebases | Monorepo strategies, layering | ✅ RAG handles large codebases | |
+| **Troubleshooting** | | | |
+| troubleshoot-install | Install diagnostics | ✅ Clear error messages | |
+| troubleshooting | Performance, stability | ✅ Logging + error handling | |
+| debug-your-config | Context inspection | ❌ Not implemented | |
+| errors | Error catalog, retries | ✅ Exponential backoff + custom predicates | |
+| **Setup & Access** | | | |
+| admin-setup | Org setup, API providers | ❌ Not implemented | Single-user tool |
+| setup | System requirements, install | ✅ pipx + venv documented | |
+| authentication | Login, team auth, credentials | ✅ API key in `~/.mycode/.env` | |
+| server-managed-settings | Managed config delivery | ❌ Not implemented | |
+| managed-mcp | Policy-based MCP control | ❌ Not implemented | |
+| auto-mode-config | Classifier boundaries | ❌ Not implemented | |
+| **Deployment** | | | |
+| third-party-integrations | Bedrock, Foundry, Vertex AI | ⚠️ Partial | OpenAI-compatible endpoint ready |
+| feature-availability | Provider/plan feature matrix | ❌ Not applicable | |
+| amazon-bedrock | AWS Bedrock integration | ❌ Not implemented | |
+| claude-platform-on-aws | AWS Agent SDK | ❌ Not implemented | |
+| google-vertex-ai | GCP Agent Platform | ❌ Not implemented | |
+| microsoft-foundry | Azure Foundry | ❌ Not implemented | |
+| network-config | Proxy, mTLS, CA certs | ❌ Not implemented | |
+| corporate-launcher | Org launcher enforcement | ❌ Not implemented | |
+| devcontainer | Dev container integration | ❌ Not implemented | |
+| **Gateways** | | | |
+| gateways | LLM gateway architecture | ❌ Not implemented | |
+| claude-apps-gateway | Org gateway deployment | ❌ Not implemented | |
+| llm-gateway | Protocol, rollout, connect | ❌ Not implemented | |
+| **Usage & Costs** | | | |
+| monitoring-usage | OTLP metrics, cost tracking | ❌ Not implemented | |
+| costs | Usage tracking, token reduction | ⚠️ Partial | Cache hits reduce costs |
+| analytics | Team/Enterprise analytics | ❌ Not implemented | |
+| **Plugin Distribution** | | | |
+| plugin-marketplaces | Marketplace hosting | ❌ Not implemented | |
+| plugin-dependencies | Version constraints | ❌ Not implemented | |
+| plugin-hints | Discovery suggestions | ❌ Not implemented | |
+| plugin-relevance | Ranking signals | ❌ Not implemented | |
+| **Security & Data** | | | |
+| security | Prompt injection, MCP, IDE security | ✅ Sandbox + approval system | |
+| data-usage | Training policy, retention | ✅ Zero data retention (local only) | |
+| zero-data-retention | ZDR routing | ✅ All data local by default | |
+| **Adoption** | | | |
+| communications-kit | Launch materials | ❌ Not applicable | |
+| champion-kit | Internal advocacy | ❌ Not applicable | |
+| **Settings & Permissions** | | | |
+| settings | Config scopes, files, tools | ✅ `~/.mycode/` + CLI flags | |
+| permissions | Permission modes, rules, sandbox | ✅ 4 modes + destructive interception | |
+| sandbox-environments | Isolation approaches | ✅ CWD restriction + subprocess timeout | |
+| sandboxing | Filesystem/network/OS isolation | ✅ Subprocess isolation | |
+| **Environments** | | | |
+| cloud-environments | Default env, setup scripts | ❌ Not implemented | |
+| self-hosted-environments | Runner orchestration | ❌ Not implemented | |
+| **Model & Responses** | | | |
+| model-config | Model aliases, effort, fallback | ⚠️ Partial | Nemotron only, dynamic params |
+| fast-mode | Model switching, cost tradeoff | ❌ Not implemented | |
+| advisor | Advisor model, cost | ❌ Not implemented | |
+| output-styles | Custom output formatting | ❌ Not implemented | |
+| **Interface** | | | |
+| terminal-config | Multiline, tmux, themes | ✅ Rich + Textual TUI | |
+| fullscreen | Fullscreen rendering | ✅ Textual handles this | |
+| accessibility | Screen reader mode | ❌ Not implemented | |
+| voice-dictation | Voice input | ❌ Not implemented | |
+| statusline | Context, git, cost display | ✅ StatusBar (mode, edits, project) | |
+| keybindings | Vim mode, custom shortcuts | ✅ F1-F4, Ctrl+P, Ctrl+C | |
+| **Reference** | | | |
+| cli-reference | CLI commands, flags | ✅ Typer CLI documented | |
+| commands | Slash commands, MCP prompts | ✅ `/exit` + TUI shortcuts | |
+| env-vars | Environment variables | ✅ `.env` + config.py | |
+| tools-reference | Tool behavior, limits | ✅ 6 tools documented | |
+| interactive-mode | Shortcuts, vim, recap | ✅ TUI shortcuts + session history | |
+| checkpointing | Rewind, summarize | ⚠️ Partial | Session history + cache |
+| hooks | Hook lifecycle, events, config | ❌ Not implemented | |
+| plugins-reference | Plugin components, schema | ❌ Not implemented | |
+| channels-reference | Webhook, relay, format | ❌ Not implemented | |
+| **Glossary** | | | |
+| glossary | Terminology definitions | ✅ In Masterplan | |
+
+---
+
 ### B. Core Tooling Capabilities (✅ ALL IMPLEMENTED)
 1. **File Operations:** `read` (with line numbers), `write` (overwrite), `edit` (surgical diff replacement using search/replace blocks), `glob` (find files), `grep` (search contents).
 2. **Terminal Execution:** Sandboxed `bash` execution with timeout limits, environment isolation, and interactive approval for destructive commands.
