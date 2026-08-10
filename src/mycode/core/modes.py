@@ -14,6 +14,8 @@ class AgentMode(Enum):
     PLAN = "⏸ PLAN"
     MANUAL = "⏸ MANUAL"
     AEROPLANE = "✈️ AEROPLANE"
+    DONT_ASK = "⚡ DONT_ASK"
+    BYPASS_PERMISSIONS = "🚫 BYPASS"
 
     @property
     def description(self) -> str:
@@ -22,6 +24,8 @@ class AgentMode(Enum):
             AgentMode.PLAN: "AI generates multi-step plan and tool calls, but pauses execution. User reviews and approves.",
             AgentMode.MANUAL: "AI acts as pair-programmer. Suggests code/commands in chat. Tools are disabled.",
             AgentMode.AEROPLANE: "Offline/Read-only. No external API calls. Relies strictly on local cache and RAG.",
+            AgentMode.DONT_ASK: "Auto-approve all actions. No permission prompts for any tool.",
+            AgentMode.BYPASS_PERMISSIONS: "Skip all safety checks. Execute any command without validation.",
         }
         return descriptions[self]
 
@@ -39,7 +43,17 @@ class AgentMode(Enum):
 
     @property
     def auto_execute_safe(self) -> bool:
-        return self == AgentMode.AUTO
+        return self in (AgentMode.AUTO, AgentMode.DONT_ASK, AgentMode.BYPASS_PERMISSIONS)
+
+    @property
+    def requires_permission_check(self) -> bool:
+        """Whether to check permissions before executing tools."""
+        return self not in (AgentMode.DONT_ASK, AgentMode.BYPASS_PERMISSIONS)
+
+    @property
+    def requires_safety_check(self) -> bool:
+        """Whether to run safety checks (destructive command detection)."""
+        return self != AgentMode.BYPASS_PERMISSIONS
 
 
 @dataclass

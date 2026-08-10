@@ -16,13 +16,13 @@
 - ✅ `fetch_url` - HTTP fetch with markdownify conversion
 - ❌ Glob, Grep, LSP, Monitor, NotebookEdit, PowerShell, Agent, AskUserQuestion, EndConversation
 
-### Operational Modes (4/6)
+### Operational Modes (6/6)
 - ✅ **AUTO** - Full autonomous execution
 - ✅ **PLAN** - Multi-step plan generation + TUI modal approval
 - ✅ **MANUAL** - Pair-programmer mode (tools disabled)
 - ✅ **AEROPLANE** - Offline mode (cache + RAG only, zero API calls)
-- ✅ **acceptEdits** - Integrated as F4 toggle (Accept/Reject Edits)
-- ❌ dontAsk (auto-approve all), bypassPermissions (skip all safety checks)
+- ✅ **DONT_ASK** - Auto-approve all actions (no permission prompts)
+- ✅ **BYPASS_PERMISSIONS** - Skip all safety checks (execute any command)
 
 ### Streaming & Reasoning (1)
 - ✅ Nemotron `enable_thinking` → `reasoning_content` stream (dim/italic) + content (Markdown)
@@ -50,6 +50,7 @@
 
 ### Diff Approval (1)
 - ✅ Unified diff in TUI modal (Accept Edits toggle F4)
+- ✅ **acceptEdits** - Integrated as F4 toggle (Accept/Reject Edits)
 
 ### Dynamic Parameters (1)
 - ✅ Smart routing: Base (temp=0.2, 4k tokens) vs Complex (temp=1.0, 16k tokens)

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, Callable, Awaitable
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.prompt import Confirm
 from .llm_client import NemotronClient
 from mycode.tools.schemas import TOOLS
 from mycode.tools.bash import execute_bash
@@ -155,6 +156,14 @@ class Agent:
             # In aeroplane mode, only allow local tools (no web)
             return [t for t in TOOLS if t["function"]["name"] not in ("web_search", "fetch_url")]
         return TOOLS
+
+    def _should_check_permissions(self) -> bool:
+        """Check if we should prompt for permission before executing tools."""
+        return self.mode.requires_permission_check
+
+    def _should_check_safety(self) -> bool:
+        """Check if we should run safety checks on commands."""
+        return self.mode.requires_safety_check
 
     def _build_execution_plan(self, tool_calls: list) -> ExecutionPlan:
         """Build an execution plan from tool calls for Plan Mode approval."""
@@ -311,6 +320,47 @@ class Agent:
                         not self.accept_edits and
                         name in ("write_file", "edit_file")
                     )
+
+                    # Check if we need permission approval (skip in DONT_ASK and BYPASS_PERMISSIONS modes)
+                    needs_permission_approval = (
+                        self._should_check_permissions() and
+                        is_destructive_tool(name, args)
+                    )
+
+                    # Check if we need safety check (skip in BYPASS_PERMISSIONS mode)
+                    needs_safety_check = (
+                        self._should_check_safety() and
+                        name == "bash" and
+                        is_destructive_bash(args.get("command", ""))
+                    )
+
+                    # Handle permission approval for destructive tools
+                    if needs_permission_approval:
+                        console.print(f"\n[bold yellow]⚠ Permission Required:[/bold yellow] {name} is potentially destructive")
+                        if not Confirm.ask("[bold yellow]Allow execution?[/bold yellow]"):
+                            observation = "Tool execution rejected by user."
+                            console.print("[bold red]Execution rejected.[/bold red]")
+                            executed_tools.append({"name": name, "args": args, "obs": observation})
+                            self.messages.append({
+                                "role": "tool",
+                                "tool_call_id": tc["id"],
+                                "content": observation
+                            })
+                            continue
+
+                    # Handle safety check for destructive bash commands
+                    if needs_safety_check:
+                        console.print(f"\n[bold red]⚠ Safety Alert:[/bold red] Destructive command detected: [yellow]{args.get('command', '')}[/yellow]")
+                        if not Confirm.ask("[bold red]Allow execution?[/bold red]"):
+                            observation = "Command blocked by user."
+                            console.print("[bold red]Command blocked.[/bold red]")
+                            executed_tools.append({"name": name, "args": args, "obs": observation})
+                            self.messages.append({
+                                "role": "tool",
+                                "tool_call_id": tc["id"],
+                                "content": observation
+                            })
+                            continue
 
                     if needs_diff_approval and name == "write_file":
                         path = args.get("path", "")

@@ -404,7 +404,7 @@ class MyCodeApp(App):
 
     def action_cycle_mode(self) -> None:
         status_bar = self.query_one(StatusBar)
-        modes = ["⏵⏵ AUTO", "⏸ PLAN", "⏸ MANUAL", "✈️ AEROPLANE"]
+        modes = ["⏵⏵ AUTO", "⏸ PLAN", "⏸ MANUAL", "✈️ AEROPLANE", "⚡ DONT_ASK", "🚫 BYPASS"]
         current = status_bar.ai_mode
         next_idx = (modes.index(current) + 1) % len(modes)
         new_mode_str = modes[next_idx]
