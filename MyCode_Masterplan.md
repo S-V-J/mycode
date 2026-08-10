@@ -21,6 +21,66 @@ To build a 100% functioning alternative, we replicated the following core mechan
 - **Observation:** The system executes the tool securely and returns the `stdout`/`stderr` to the model.
 - **Iteration:** The model evaluates the observation and decides whether to act again or provide the final answer.
 
+#### Technical Implementation Details (src/mycode/core/agent.py)
+
+**Loop Structure:**
+- Maximum **10 iterations** per user request to allow deep, complex multi-step workflows
+- Each iteration: Parameter Routing → LLM Stream → Tool Execution → Observation → Next Iteration
+- Early exit when LLM returns content without tool calls (final answer)
+
+**Message Flow:**
+```python
+# 1. System prompt with mode instructions + MYCODE.md + RAG context
+# 2. User message appended
+# 3. For each iteration:
+#    - LLM returns (content, tool_calls) via NemotronClient.stream_chat()
+#    - If tool_calls: append assistant message with tool_calls, execute each tool
+#    - Append tool results as "tool" role messages
+#    - Loop continues until LLM returns content only (no tool_calls)
+```
+
+**Tool Call Handling:**
+- Tools defined in `mycode.tools.schemas.TOOLS` (OpenAI-compatible function schemas)
+- Available tools filtered by mode: MANUAL=none, AEROPLANE=local only, AUTO/PLAN=all
+- Each tool call parsed from streaming deltas, accumulated, then executed sequentially
+- Tool results truncated to 500 chars for UI display, full result stored in message history
+
+**Plan Mode Approval Flow:**
+1. LLM generates tool calls → `_build_execution_plan()` creates `ExecutionPlan` with steps
+2. Each step: tool name, args, description, destructive flag
+3. Plan displayed in TUI modal (or auto-approved in CLI)
+4. User approves/rejects → if rejected, loop breaks with "Plan rejected" message
+5. If approved, tools execute normally
+
+**Diff Approval Flow (when Accept Edits = OFF):**
+1. Before `write_file`/`edit_file`: read current file content
+2. Generate new content preview → show unified diff in TUI modal
+3. User accepts/rejects → if rejected, observation = "rejected by user"
+4. If accepted, execute tool normally
+
+**Dynamic Parameter Routing (Smart System):**
+```python
+# Base (Fast): temp=0.2, max_tokens=4096, reasoning_budget=2048
+# Complex triggers: prompt>150chars, keywords (refactor, debug, security, etc.), iteration>=2
+# Complex (Raw Power): temp=1.0, max_tokens=16384, reasoning_budget=16384
+```
+
+**Cache & RAG Integration:**
+- **Pre-loop:** `check_cache(user_input)` → if hit, return cached response, skip LLM entirely
+- **Pre-loop:** `retrieve_context(user_input)` → inject top-5 codebase chunks into system prompt
+- **Post-loop:** `save_to_cache(user_input, final_response, executed_tools)` with file hashes
+
+**NVIDIA Rate Limit Handling:**
+- 1.5s cooldown after each tool execution batch (free-tier concurrency limits)
+- Exponential backoff retry (5 attempts, 4-30s) in `NemotronClient._create_stream()`
+- Custom predicate catches: `RateLimitError`, `APIConnectionError`, `ResourceExhausted`, `Worker local`
+
+**Error Handling:**
+- KeyboardInterrupt: Caught, shows "Interrupted", continues loop
+- JSON decode errors: Empty args dict, continues
+- Tool execution errors: Returned as observation, LLM can self-correct
+- Fatal exceptions: Caught, displayed, loop breaks
+
 ### B. Core Tooling Capabilities (✅ ALL IMPLEMENTED)
 1. **File Operations:** `read` (with line numbers), `write` (overwrite), `edit` (surgical diff replacement using search/replace blocks), `glob` (find files), `grep` (search contents).
 2. **Terminal Execution:** Sandboxed `bash` execution with timeout limits, environment isolation, and interactive approval for destructive commands.
