@@ -87,10 +87,43 @@ To build a 100% functioning alternative, we replicated the following core mechan
 3. **Web Access:** `web_search` (DuckDuckGo) and `fetch_url` (httpx + markdownify) for live documentation access.
 4. **Self-Correction:** Automatically reading compiler/linter errors from tool outputs and writing fixes without user intervention.
 
-### C. Context Window Management
+### C. Context Window Management ✅ **100% IMPLEMENTED**
 - **Dynamic Context Injection:** Instead of sending the whole repo, the agent uses tools to read *only* the necessary files.
 - **Summarization:** Compressing long terminal outputs to prevent context window overflow.
 - **Auto-Context RAG:** Tree-sitter AST-based codebase indexing with automatic context injection.
+
+#### Technical Implementation Details (src/mycode/core/rag.py) ✅ **VERIFIED COMPLETE**
+
+**Tree-sitter AST Chunking:**
+- **Languages Supported:** Python (`.py`), JavaScript (`.js`), TypeScript (`.ts`)
+- **Target Node Types:** 
+  - Python: `function_definition`, `class_definition`
+  - JS/TS: `function_declaration`, `class_declaration`, `method_definition`, `export_statement`, `lexical_declaration`
+- **Chunk Metadata:** file path, node type, symbol name, MD5 content hash
+- **Fallback:** 50-line text chunks if Tree-sitter unavailable or unsupported language
+
+**Indexing Pipeline (`index_directory` → `index_file` → `chunk_code`):**
+1. Walk directory, prune ignored dirs (`venv`, `.git`, `node_modules`, `__pycache__`, etc.)
+2. For each supported file: read content → parse AST → extract logical chunks
+3. Generate unique IDs: `{file_path}_{symbol_name}_{index}`
+4. Upsert to ChromaDB `codebase_collection` (handles new + modified files)
+
+**Auto-Context Retrieval (`retrieve_context`):**
+- Query: User prompt embedded via `all-MiniLM-L6-v2`
+- Search: ChromaDB cosine similarity, top-5 results
+- Format: `RELEVANT CODEBASE CONTEXT:\n--- File: {path} ({type}: {name}) ---\n{content}`
+- Injected into system prompt pre-loop in `agent.run()`
+
+**Watchdog Live Updates (`start_watcher`):**
+- Background daemon thread monitoring CWD recursively
+- Events: `on_modified`, `on_created` → re-index file + invalidate cache
+- Event: `on_deleted` → invalidate cache entries for deleted file
+- Cross-module integration: imports `invalidate_cache_for_file` from `cache.py`
+
+**Storage:**
+- ChromaDB collection: `codebase_index` (separate from cache trajectories)
+- Persistent path: `~/.mycode/rag_data/`
+- Embedding: `all-MiniLM-L6-v2` (same as cache for consistency)
 
 ### D. Memory & State
 - **Project Memory (`MYCODE.md`):** A markdown file in the project root containing architecture rules, preferred libraries, and coding standards. Automatically injected into the system prompt via directory traversal.
