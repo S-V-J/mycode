@@ -1,0 +1,131 @@
+Screen {
+    layout: vertical;
+}
+
+#main-layout {
+    height: 1fr;
+}
+
+#left-sidebar, #right-sidebar {
+    width: 35;
+    background: $surface-darken-1;
+    border-right: thick $primary-darken-2;
+    padding: 1;
+    display: block; /* Default to visible */
+}
+
+#right-sidebar {
+    border-right: none;
+    border-left: thick $primary-darken-2;
+}
+
+#center-chat {
+    width: 1fr;
+    background: $background;
+    padding: 0 1;
+}
+
+#chat-log {
+    height: 1fr;
+    padding: 1;
+    overflow-y: auto;
+}
+
+#chat-input {
+    height: 5; /* Multi-line input */
+    border: tall $accent;
+    padding: 0 1;
+    background: $surface;
+}
+
+#chat-input:focus {
+    border: tall $warning;
+}
+
+.sidebar-title {
+    text-style: bold;
+    color: $text-muted;
+    margin-bottom: 1;
+    text-align: center;
+    background: $surface-darken-2;
+    padding: 0 1;
+}
+
+#project-tree {
+    height: 1fr;
+    background: $surface-darken-1;
+}
+
+#file-tree {
+    height: 1fr;
+    background: $surface-darken-1;
+}
+
+#btn-new-project {
+    margin-top: 1;
+}
+
+#status-bar {
+    dock: bottom;
+    height: 1;
+    background: $primary-darken-2;
+    color: $text;
+    text-style: bold;
+    padding: 0 2;
+    layout: horizontal;
+    content-align: left middle;
+}
+
+/* Modal screens */
+.modal-container {
+    width: 80%;
+    height: 80%;
+    background: $surface;
+    border: thick $primary;
+    padding: 2;
+    margin: 1 2; /* Top/bottom, left/right */
+    layout: vertical;
+}
+
+.modal-title {
+    text-style: bold;
+    color: $primary;
+    margin-bottom: 1;
+    text-align: center;
+}
+
+.modal-summary {
+    color: $text;
+    margin-bottom: 1;
+}
+
+.modal-steps-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.modal-step {
+    margin-bottom: 1;
+    padding: 1;
+    background: $surface-darken-1;
+    border: solid $primary-darken-2;
+}
+
+.modal-diff {
+    height: 1fr;
+    overflow-y: auto;
+    background: $surface-darken-2;
+    padding: 1;
+    border: solid $primary-darken-2;
+}
+
+.modal-buttons {
+    layout: horizontal;
+    content-align: center middle;
+    margin-top: 2;
+    height: auto;
+}
+
+.modal-buttons Button {
+    margin: 0 1;
+}

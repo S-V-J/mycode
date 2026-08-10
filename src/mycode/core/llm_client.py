@@ -54,7 +54,7 @@ class NemotronClient:
         """Streams chat completion with dynamic parameter routing."""
         if params is None:
             params = {"temperature": 0.7, "max_tokens": 4096, "reasoning_budget": 4096}
-            
+
         try:
             stream = self._create_stream(messages, tools, params)
         except Exception as e:
@@ -63,15 +63,16 @@ class NemotronClient:
 
         is_thinking_active = False
         content_text = ""
-        tool_calls_dict = {} 
-        
+        tool_calls_dict = {}
+        last_content_length = 0
+
         console.print("\n[dim italic]💭 Reasoning...[/dim italic]")
-        
+
         try:
             for chunk in stream:
                 if not chunk.choices: continue
                 delta = chunk.choices[0].delta
-                
+
                 # 1. Handle Reasoning Stream
                 reasoning = getattr(delta, "reasoning_content", None)
                 if reasoning:
@@ -79,30 +80,33 @@ class NemotronClient:
                         is_thinking_active = True
                     console.print(reasoning, end="", style="dim", highlight=False)
                     continue
-                    
+
                 # 2. Transition to Content/Tools
                 if is_thinking_active and (delta.content or delta.tool_calls):
                     console.print("\n")
                     is_thinking_active = False
 
-                # 3. Accumulate standard content
+                # 3. Accumulate standard content (only new content)
                 if delta.content:
-                    content_text += delta.content
-                    
+                    # Only append new content (avoid duplicates from stream artifacts)
+                    new_content = delta.content
+                    if not content_text.endswith(new_content):
+                        content_text += new_content
+
                 # 4. Accumulate Tool Call deltas
                 if delta.tool_calls:
                     for tc_delta in delta.tool_calls:
                         idx = tc_delta.index
                         if idx not in tool_calls_dict:
                             tool_calls_dict[idx] = {"id": "", "type": "function", "function": {"name": "", "arguments": ""}}
-                        
+
                         if tc_delta.id:
                             tool_calls_dict[idx]["id"] = tc_delta.id
                         if tc_delta.function.name:
                             tool_calls_dict[idx]["function"]["name"] += tc_delta.function.name
                         if tc_delta.function.arguments:
                             tool_calls_dict[idx]["function"]["arguments"] += tc_delta.function.arguments
-                            
+
         except Exception as e:
             err_msg = str(e)
             if "ResourceExhausted" in err_msg or "Worker local" in err_msg:
@@ -111,9 +115,9 @@ class NemotronClient:
                 console.print(f"\n[yellow]⚠ Stream interrupted mid-generation: {e}[/yellow]")
 
         final_tool_calls = list(tool_calls_dict.values())
-        
+
         if content_text and not final_tool_calls:
-            console.print() 
+            console.print()
             console.print(Markdown(content_text))
-            
+
         return content_text, final_tool_calls

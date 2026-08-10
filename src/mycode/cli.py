@@ -2,10 +2,10 @@ import typer
 from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
-from .config import ensure_config
-from .llm_client import NemotronClient
-from .agent import Agent
-from .rag import index_directory, start_watcher
+from .core.config import ensure_config
+from .core.llm_client import NemotronClient
+from .core.agent import Agent
+from .core.rag import index_directory, start_watcher
 
 app = typer.Typer(help="MyCode: Open-Source Agentic CLI")
 console = Console()
