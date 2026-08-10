@@ -541,7 +541,16 @@ The agent operates in four distinct modes, controlled via TUI toggles (F3) or CL
 - **Prompt 9:** `pyproject.toml` with `[project.scripts]` entry point (`mycode = mycode.cli:app`). Directory traversal for `MYCODE.md` injection. Textual TUI with 3-column reactive layout, modal approval dialogs, session management.
 - **Result:** Global `pipx install` ready, premium TUI experience, project memory injection.
 
+### Phase 6: Hook System & Automation ✅
+**Goal:** Event-driven automation and extensibility with hook system, scheduler, checkpointing, and headless mode.
+- **Prompt 10:** Hook system with 31 lifecycle events (SessionStart, PreToolUse, PostToolUse, etc.) and 5 handler types (Command, HTTP, MCP, Prompt-based, Agent-based).
+- **Prompt 11:** Scheduler with cron, loops, reminders, and goal tracking. Headless mode for CI/CD with JSON output.
+- **Prompt 12:** Checkpointing system with session snapshots, rewind capability, and deep links for session sharing.
+- **Result:** Full event-driven automation with CLI/TUI integration, 36 atomic features implemented.
+
 ---
+
+## 7. Phased Development Roadmap - COMPLETED (Phases 1-6)
 
 ## 8. WSL-Specific Considerations & Security Sandbox
 
@@ -617,8 +626,8 @@ mycode
 ### Functional Verification
 - [x] `mycode` starts, prompts for API key on first run, saves to `~/.mycode/.env` (0600)
 - [x] Streaming shows reasoning (dim/italic) → content (Markdown) without corruption
-- [x] Tools execute: bash, read_file, write_file, edit_file, web_search, fetch_url
-- [x] Modes toggle: F3 (AUTO→PLAN→MANUAL→AEROPLANE), F4 (Accept Edits)
+- [x] Tools execute: bash, read_file, write_file, edit_file, glob, grep, web_search, fetch_url
+- [x] Modes toggle: F3 (AUTO→PLAN→MANUAL→AEROPLANE→DONT_ASK→BYPASS_PERMISSIONS), F4 (Accept Edits)
 - [x] Cache hit: Repeat query returns "Cache Hit" with sub-100ms response
 - [x] Cache invalidation: Modify file → cache entries for that file invalidated
 - [x] RAG context: Coding questions inject relevant codebase chunks
@@ -629,6 +638,21 @@ mycode
 - [x] Diff approval: File writes show unified diff modal when Accept Edits = OFF
 - [x] Aeroplane mode: Works offline using only cache + RAG
 - [x] Global install: `pipx install git+https://github.com/S-V-J/mycode.git` works
+
+### Phase 6 Verification (Hook System & Automation)
+- [x] Hook events fire at correct points (31 lifecycle events)
+- [x] 5 handler types execute: Command, HTTP, MCP, Prompt-based, Agent-based
+- [x] Hook config loads from `.mycode/hooks.json`
+- [x] Cron jobs execute on schedule (`scheduler cron`, `scheduler cron-list`, `scheduler cron-delete`)
+- [x] Loop jobs execute on interval (`scheduler loop`)
+- [x] Reminders work (`scheduler reminder`)
+- [x] Headless mode outputs JSON (`headless run --json`)
+- [x] Checkpoints save/restore session state (`checkpoint list`, `checkpoint restore`)
+- [x] Deep links open sessions (`deeplink create`, `deeplink resolve`)
+- [x] Hook CLI works (`hooks list`, `hooks add`, `hooks test`)
+- [x] Scheduler CLI works (`scheduler cron`, `scheduler cron-list`, `scheduler loop`, `scheduler reminder`)
+- [x] Checkpoint CLI works (`checkpoint list`, `checkpoint restore`)
+- [x] Deep link CLI works (`deeplink create`, `deeplink resolve`, `deeplink list`)
 
 ### Security Verification
 - [x] Destructive commands blocked without approval
