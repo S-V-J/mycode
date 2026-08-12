@@ -408,14 +408,95 @@ class MyCodeApp(App):
         self.notify("Trust management coming soon", title="⚙️ Trust")
 
     def action_command_palette(self) -> None:
-        self.notify("Command Palette (Ctrl+Shift+P) - Coming soon", title="⚡ Palette")
+def action_command_palette(self) -> None:
+    from mycode.tui.widgets.modals.command_palette import CommandPaletteScreen
+    def handle_command(command: str):
+        if command == "configure_provider":
+            self.action_provider_settings()
+        elif command == "add_project":
+            self.action_add_project()
+        elif command == "manage_trust":
+            self.action_manage_trust()
+        elif command == "new_history":
+            self.action_new_tab()
+        elif command == "toggle_left":
+            self.action_toggle_left()
+        elif command == "toggle_right":
+            self.action_toggle_right()
+        elif command == "cycle_mode":
+            self.action_cycle_mode()
+        elif command == "toggle_edits":
+            self.action_toggle_edits()
+        elif command == "quick_switch":
+            self.action_quick_switch()
+        elif command == "search_history":
+            self.action_search_history()
+        elif command == "view_analytics":
+            self._show_analytics()
+        elif command == "export_session":
+            self._export_current_session()
+        elif command == "change_theme":
+            self._cycle_theme()
+        elif command == "help":
+            self._show_help()
+    self.push_screen(CommandPaletteScreen(), handle_command)
 
-    def action_quick_switch(self) -> None:
-        self.notify("Quick Switch (Ctrl+P) - Coming soon", title="🔍 Switch")
+def action_quick_switch(self) -> None:
+    from mycode.tui.widgets.modals.search_modal import SearchModalScreen
+    self.push_screen(SearchModalScreen(), lambda result: self._switch_to_history(result))
 
-    def action_search_history(self) -> None:
-        self.notify("Search History (Ctrl+Shift+F) - Coming soon", title="🔎 Search")
+def action_search_history(self) -> None:
+    from mycode.tui.widgets.modals.search_modal import SearchModalScreen
+    self.push_screen(SearchModalScreen(), lambda result: self._switch_to_history(result))
 
+def _switch_to_history(self, history_id: str):
+    if not history_id:
+        return
+    center_tabs = self.query_one("#center-tabs", CenterTabs)
+    if history_id in center_tabs.workspace_to_tab:
+        center_tabs.active = center_tabs.workspace_to_tab[history_id]
+    else:
+        history = workspace_manager.get_work_history(history_id)
+        if history:
+            tab_id = center_tabs.add_work_history(history_id, history.name, history.project_id)
+            center_tabs.active = tab_id
+
+def _show_analytics(self) -> None:
+    from mycode.core.analytics import cost_tracker
+    summary = cost_tracker.get_summary()
+    cost_str = f"${summary.get('total_cost_usd', 0):.4f}"
+    token_str = f"{summary.get('total_tokens', 0):,}"
+    self.notify(f"{summary.get('total_requests', 0)} requests, {token_str} tokens, {cost_str}", title="📊 Analytics")
+
+def _export_current_session(self) -> None:
+    center_tabs = self.query_one("#center-tabs", CenterTabs)
+    if center_tabs.active:
+        for history_id, tab_id in center_tabs.workspace_to_tab.items():
+            if tab_id == center_tabs.active:
+                history = workspace_manager.get_work_history(history_id)
+                if history and history.session_id:
+                    from mycode.core.cache import get_messages
+                    from pathlib import Path
+                    messages = get_messages(history.session_id)
+                    export_path = Path.home() / ".mycode" / "exports"
+                    export_path.mkdir(exist_ok=True)
+                    filepath = export_path / f"{history.name or 'session'}.md"
+                    md_content = f"# {history.name}\n\nExported: {__import__('datetime').datetime.now().isoformat()}\n\n---\n\n"
+                    for role, content, _, _ in messages:
+                        prefix = "**You:**" if role == "user" else "**MyCode:**"
+                        md_content += f"\n{prefix}\n{content}\n\n"
+                    filepath.write_text(md_content)
+                    self.notify(f"Exported to {filepath}", title="📤 Export")
+                break
+
+def _cycle_theme(self) -> None:
+    from mycode.core.styles import theme_manager
+    themes = theme_manager.get_theme_names()
+    current = theme_manager.get_current_theme().name
+    idx = themes.index(current) if current in themes else 0
+    next_idx = (idx + 1) % len(themes)
+    theme_manager.set_theme(themes[next_idx])
+    self.notify(f"Theme: {themes[next_idx]}", title="🎨 Theme")
     def action_provider_settings(self) -> None:
         """Open provider settings."""
         from mycode.tui.widgets.modals.setup_wizard import ProviderSettingsScreen

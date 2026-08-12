@@ -80,9 +80,10 @@
 - ✅ OpenAI-compatible endpoint (Nemotron, ready for Ollama/Together/OpenRouter)
 
 ### TUI Interface (1)
-- ✅ Textual 3-column: Left (Chats/Sessions) | Center (Chat) | Right (File Tree)
-- ✅ Modal dialogs: Plan approval, Diff approval
-- ✅ Keybindings: F1 (Chats), F2 (Files), F3 (Mode), F4 (Edits), Ctrl+P (Palette), Ctrl+C (Quit)
+- ✅ Textual TUI v2: IDE-like workspace with Setup Wizard, Multi-project sidebar, Tabbed workspaces, Trust folders
+- ✅ Modal dialogs: Plan approval, Diff approval, Setup Wizard, Provider Settings, Command Palette, Search
+- ✅ Keybindings: F1 (Projects), F2 (Files), F3 (Mode), F4 (Edits), Ctrl+T/W/Tab/Shift+Tab, Ctrl+Shift+P, Ctrl+P, Ctrl+Shift+F, Ctrl+K Ctrl+S
+- ✅ 3-column layout: Left (Projects/Histories) | Center (Tabbed Chat) | Right (Folder Tree)
 
 ### Multi-Session (1)
 - ✅ SQLite-backed session management in left sidebar

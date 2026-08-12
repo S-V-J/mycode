@@ -36,7 +36,7 @@
 ### Sandboxing & Isolation (5)
 | # | Approach | Description | MyCode Implementation |
 |---|----------|-------------|----------------------|
-| 1 | Sandboxed Bash Tool | Current subprocess with limits | ✅ Implemented |
+| 1 | Sandboxed Bash Tool | Current subprocess with limits | ✅ Implemented (Phase 1) |
 | 2 | Sandbox Runtime | Dedicated isolated runtime | `gVisor` / `firecracker` |
 | 3 | Dev Containers | VS Code devcontainer support | `.devcontainer.json` + Docker |
 | 4 | Custom Containers | User-defined Docker images | `docker run` with profiles |
@@ -122,7 +122,7 @@
 
 ---
 
-## File Structure
+## File Structure (Planned)
 ```
 src/mycode/
 ├── desktop/

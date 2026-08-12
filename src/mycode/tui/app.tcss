@@ -1,70 +1,60 @@
+/* MyCode v2.0 TUI - Main Layout */
+
+/* Screen */
 Screen {
     layout: vertical;
-}
-
-#main-layout {
-    height: 1fr;
-}
-
-#left-sidebar, #right-sidebar {
-    width: 35;
-    background: $surface-darken-1;
-    border-right: thick $primary-darken-2;
-    padding: 1;
-    display: block; /* Default to visible */
-}
-
-#right-sidebar {
-    border-right: none;
-    border-left: thick $primary-darken-2;
-}
-
-#center-chat {
-    width: 1fr;
-    background: $background;
-    padding: 0 1;
-}
-
-#chat-log {
-    height: 1fr;
-    padding: 1;
-    overflow-y: auto;
-}
-
-#chat-input {
-    height: 5; /* Multi-line input */
-    border: tall $accent;
-    padding: 0 1;
     background: $surface;
 }
 
-#chat-input:focus {
-    border: tall $warning;
-}
-
-.sidebar-title {
-    text-style: bold;
-    color: $text-muted;
-    margin-bottom: 1;
-    text-align: center;
-    background: $surface-darken-2;
-    padding: 0 1;
-}
-
-#project-tree {
+/* Main horizontal layout: left | center | right */
+#main-layout {
     height: 1fr;
+    layout: horizontal;
+}
+
+/* Left Sidebar */
+#left-sidebar {
+    width: 30%;
+    max-width: 45;
+    min-width: 28;
+    border-right: solid $primary 1;
+    height: 100%;
     background: $surface-darken-1;
+    layout: vertical;
 }
 
-#file-tree {
-    height: 1fr;
+#left-sidebar.collapsed {
+    width: 0;
+    min-width: 0;
+    border-right: none;
+}
+
+/* Center Tabs */
+#center-tabs {
+    width: 1fr;
+    height: 100%;
+    layout: vertical;
+    background: $background;
+}
+
+/* Right Sidebar */
+#right-sidebar {
+    width: 30%;
+    max-width: 55;
+    min-width: 32;
+    border-left: solid $primary 1;
+    height: 100%;
     background: $surface-darken-1;
+    layout: vertical;
 }
 
-#btn-new-project {
-    margin-top: 1;
+#right-sidebar.collapsed {
+    width: 0;
+    min-width: 0;
+    border-left: none;
 }
 
+/* Status Bar */
 #status-bar {
     dock: bottom;
     height: 1;
@@ -76,30 +66,140 @@ Screen {
     content-align: left middle;
 }
 
-/* Modal screens */
+/* Sidebar Titles */
+#sidebar-title, #folder-title {
+    text-style: bold;
+    color: $text-muted;
+    margin: 1;
+    text-align: center;
+    background: $surface-darken-2;
+    padding: 0 1;
+}
+
+/* Tree Widgets */
+#project-tree, #folder-tree {
+    height: 1fr;
+    background: $surface-darken-1;
+    padding: 0 1;
+}
+
+Tree {
+    background: transparent;
+}
+
+Tree .tree--cursor {
+    background: $primary 20%;
+}
+
+Tree .tree--cursor-line {
+    color: $text;
+}
+
+/* Sidebar Actions */
+#sidebar-actions, #folder-actions {
+    layout: horizontal;
+    padding: 1;
+    height: auto;
+}
+
+#sidebar-actions Button, #folder-actions Button {
+    margin: 0 1;
+}
+
+/* Tabbed Content */
+TabbedContent {
+    height: 1fr;
+}
+
+TabbedContent TabBar {
+    background: $surface-darken-1;
+    height: 1;
+    border-bottom: solid $primary 1;
+}
+
+TabbedContent TabButton {
+    padding: 0 2;
+    margin: 0 1;
+    min-width: 15;
+    max-width: 30;
+    background: transparent;
+    border: none;
+}
+
+TabbedContent TabButton.-active {
+    background: $primary;
+    color: $text;
+    text-style: bold;
+}
+
+TabbedContent TabButton.dirty::after {
+    content: "●";
+    color: $warning;
+    margin-left: 1;
+}
+
+TabbedContent TabPane {
+    height: 1fr;
+    background: $background;
+}
+
+/* Chat Workspace */
+#chat-log {
+    height: 1fr;
+    padding: 1;
+    overflow-y: auto;
+}
+
+#tool-status {
+    height: auto;
+    min-height: 1;
+    padding: 0 1;
+    color: $text-muted;
+    background: $surface-darken-1;
+}
+
+#chat-input {
+    height: 5;
+    border: tall $accent;
+    padding: 0 1;
+    background: $surface;
+}
+
+#chat-input:focus {
+    border: tall $warning;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    layer: modal;
+    align: center middle;
+    background: $surface 95%;
+}
+
 .modal-container {
     width: 80%;
-    height: 80%;
+    max-width: 100;
+    height: auto;
+    max-height: 80%;
     background: $surface;
-    border: thick $primary;
+    border: solid $primary 1;
     padding: 2;
-    margin: 1 2; /* Top/bottom, left/right */
     layout: vertical;
 }
 
-.modal-title {
+#modal-title, #wizard-title, #editor-title, #trust-title {
     text-style: bold;
     color: $primary;
     margin-bottom: 1;
     text-align: center;
 }
 
-.modal-summary {
+#modal-summary {
     color: $text;
     margin-bottom: 1;
 }
 
-.modal-steps-title {
+#modal-steps-title {
     text-style: bold;
     margin-bottom: 1;
 }
@@ -111,21 +211,137 @@ Screen {
     border: solid $primary-darken-2;
 }
 
-.modal-diff {
+#modal-diff {
     height: 1fr;
+    max-height: 40;
     overflow-y: auto;
     background: $surface-darken-2;
     padding: 1;
     border: solid $primary-darken-2;
+    font-family: monospace;
 }
 
-.modal-buttons {
+.modal-buttons, #wizard-buttons, #editor-buttons, #trust-buttons {
     layout: horizontal;
     content-align: center middle;
     margin-top: 2;
     height: auto;
 }
 
-.modal-buttons Button {
+.modal-buttons Button, #wizard-buttons Button, #editor-buttons Button, #trust-buttons Button {
     margin: 0 1;
 }
+
+/* Wizard Specific */
+.wizard-content {
+    height: auto;
+    min-height: 10;
+    padding: 1;
+}
+
+.wizard-label {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.wizard-hint {
+    color: $text-muted;
+    margin-top: 1;
+}
+
+.wizard-loading {
+    color: $warning;
+    text-style: italic;
+}
+
+.wizard-success {
+    color: $success;
+    text-style: bold;
+    text-align: center;
+    margin: 2 0;
+}
+
+#payload-editor {
+    height: 20;
+    border: tall $accent;
+    background: $surface;
+}
+
+#payload-actions {
+    layout: horizontal;
+    content-align: center middle;
+    margin-top: 1;
+}
+
+/* Trust Dialog */
+#trust-path {
+    margin: 1 0;
+    text-style: italic;
+}
+
+.trust-item {
+    margin-left: 2;
+    margin-bottom: 0.5;
+}
+
+/* Payload Editor */
+#editor-container {
+    width: 90%;
+    max-width: 120;
+}
+
+/* Folder Picker */
+#folder-picker {
+    width: 60;
+    max-width: 80;
+    padding: 2;
+}
+
+#folder-picker Input {
+    margin: 1 0;
+    width: 100%;
+}
+
+/* Keybinding hints in footer */
+Footer {
+    background: $surface-darken-2;
+}
+
+/* Animations */
+@keyframes slide-in-left {
+    from { offset-x: -100%; }
+    to { offset-x: 0; }
+}
+
+@keyframes slide-out-left {
+    from { offset-x: 0; }
+    to { offset-x: -100%; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#left-sidebar {
+    animation: slide-in-left 0.2s ease-out;
+}
+
+#left-sidebar.collapsed {
+    animation: slide-out-left 0.2s ease-in;
+}
+
+#right-sidebar {
+    animation: slide-in-left 0.2s ease-out;
+}
+
+#right-sidebar.collapsed {
+    animation: slide-out-left 0.2s ease-in;
+}
+
+/* Syntax Highlighting (for JSON payload) */
+.json-key { color: $accent; }
+.json-string { color: $success; }
+.json-number { color: $warning; }
+.json-boolean { color: $error; }
+.json-null { color: $text-muted; }

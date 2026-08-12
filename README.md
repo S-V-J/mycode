@@ -15,6 +15,7 @@ Paste your API key once, and the CLI handles the rest—learning from every inte
 - **📖 Project Memory (`MYCODE.md`):** Automatically detects and injects project-specific rules and architectural guidelines into the AI's system prompt.
 - **🔒 Privacy & Security First:** All caching, embeddings, and execution logs are stored locally in SQLite and ChromaDB. Destructive terminal commands require explicit user approval.
 - **🔌 Provider Agnostic:** Pre-configured for NVIDIA Nemotron, but easily adaptable to any OpenAI-compatible API (Ollama, Together AI, OpenRouter).
+- **🖥️ IDE-like TUI Workspace (v2 Complete):** Multi-project sidebar, tabbed CLI workspaces (VS Code-style), trust-based folder access, per-project system folder manager — see `TUI_SPEC.md`
 
 ## 🚀 Global Installation
 
@@ -30,11 +31,27 @@ pipx install git+https://github.com/S-V-J/mycode.git
 ```
 
 ### First Run Configuration
-Simply type `mycode` in any terminal. On the first run, it will prompt you to paste your NVIDIA API Key. This key is securely saved to `~/.mycode/.env` with strict `0600` POSIX permissions. You will never be asked for it again.
+On first run, MyCode launches a **Setup Wizard** (TUI modal) that guides you through:
+1. **API Key** — Securely saved to `~/.mycode/.env` (0600 permissions)
+2. **Provider Selection** — NVIDIA Nemotron, OpenAI, Ollama, Together AI, OpenRouter, or Custom URL
+3. **Model Selection** — Fetched live from provider's `/models` endpoint
+4. **Raw Payload Editor** — Full JSON payload with provider-specific defaults (temperature, max_tokens, reasoning_budget, etc.), fully editable
 
-```bash
-mycode
-```
+All settings persist to `~/.mycode/providers.json` for multi-profile support.
+
+## 🏗️ Development Status
+
+**Current Version:** v0.7.0 (Phases 1-5 Complete - 75% of total roadmap)
+
+| Phase | Status | Features |
+|-------|--------|----------|
+| **Phase 1: Core Foundation** | ✅ Complete | ReAct agent, 8 tools, 6 modes, semantic cache, RAG, TUI (v2) |
+| **Phase 2: Hooks & Automation** | ✅ Complete | 31 hook events, 5 handlers, scheduler, checkpoints, headless |
+| **Phase 3: MCP & Plugins** | ✅ Complete | 4 MCP transports, plugin marketplace, skills, artifacts, channels |
+| **Phase 4: Multi-Surface** | 📋 Planned | Desktop, Web, Mobile, VS Code, JetBrains, Chrome, Slack |
+| **Phase 5: TUI Redesign + Intelligence** | ✅ Complete | Setup wizard, multi-project sidebar, tabbed workspaces, trust folders, prompt library, Vim mode, themes, analytics, advisor, fast mode |
+
+See [DEVELOPMENT_PHASES.md](./DEVELOPMENT_PHASES.md) for detailed status.
 
 ## 📖 Usage & Project Memory
 

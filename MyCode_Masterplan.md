@@ -7,7 +7,7 @@
 **Core Philosophy:** *"Configure once, code forever."*  
 Users authenticate once, and the CLI handles the rest—learning from every interaction, caching solutions locally to bypass API costs, and autonomously executing code via a secure ReAct loop.
 
-**Status:** ✅ **100% COMPLETE** - All 5 Phases implemented and production-ready.
+**Status:** ✅ **Phases 1-5 COMPLETE** (177/237 = 75%) - Core agentic CLI/TUI with MCP & Plugin ecosystem and full IDE-like TUI v2 workspace. Phase 4 planned.
 
 ---
 
@@ -286,6 +286,41 @@ Based on the official Claude Code documentation (https://code.claude.com/docs/ll
 3. **Web Access:** `web_search` (DuckDuckGo) and `fetch_url` (httpx + markdownify) for live documentation access.
 4. **Self-Correction:** Automatically reading compiler/linter errors from tool outputs and writing fixes without user intervention.
 
+### C. TUI Workspace Redesign (📋 PLANNED - Phase 5)
+**Goal:** Transform the current 3-column TUI into a full-featured IDE-like terminal workspace with multi-project management, tabbed workspaces, and trust-based folder access.
+
+**Current TUI (v1 - to be replaced):**
+- Textual 3-column layout: Left (Chats/Sessions) | Center (Chat) | Right (File Tree)
+- Basic keybindings: F1/F2/F3/F4, Ctrl+P, Ctrl+C
+- Session management in left sidebar
+
+**Target TUI (v2 - IDE-like Workspace):**
+1. **First-Run Setup Wizard:** Modal dialog for API key, provider selection (NVIDIA Nemotron, OpenAI, Ollama, Together AI, OpenRouter, Custom URL), model selection with editable raw payload JSON
+2. **Left Sidebar - Multi-Project & Work History Manager:** 
+   - Projects = trusted system folders (explicit acknowledgment required)
+   - Work History = chat sessions (editable names, timestamps, project-linked)
+   - Ad-hoc work without project folder
+   - Shortcut: F1 toggle, Ctrl+Shift+P command palette
+3. **Center - Tabbed CLI Workspaces (VS Code-style):**
+   - Each tab = one work history (linked to project or ad-hoc)
+   - Tab title = editable work history name + dirty indicator
+   - Right-click tab → close, close others, split, duplicate, rename
+   - Shortcuts: Ctrl+Tab/Shift+Tab, Ctrl+W, Ctrl+T
+   - Context: Tab knows its project folder → tools run in that CWD
+4. **Right Sidebar - System Folder Manager (Per Work Project):**
+   - Tree view of trusted project folder
+   - Context menu: Open, Read, Edit, Delete, Copy Path, Add to Context, Run Tests, Search
+   - Trust Acknowledgment Flow for new folders
+   - Shortcut: F2 toggle
+5. **Persistence & Config Files:**
+   - `~/.mycode/providers.json` - Multiple provider profiles
+   - `~/.mycode/workspaces.json` - Project folders, work histories, tab state
+   - `~/.mycode/trusted_folders.json` - Acknowledged system folders
+   - `~/.mycode/config.toml` - UI preferences
+6. **Extended Keyboard Shortcuts:** F1-F4, Ctrl+T/W/Tab/Shift+Tab, Ctrl+Shift+P, Ctrl+P, Ctrl+Shift+F, Ctrl+K Ctrl+S
+
+See `TUI_SPEC.md` for complete technical specification.
+
 ### C. Context Window Management ✅ **100% IMPLEMENTED**
 - **Dynamic Context Injection:** Instead of sending the whole repo, the agent uses tools to read *only* the necessary files.
 - **Summarization:** Compressing long terminal outputs to prevent context window overflow.
@@ -536,10 +571,16 @@ The agent operates in four distinct modes, controlled via TUI toggles (F3) or CL
 - **Prompt 8:** Auto-Context retriever injecting top-5 relevant code chunks into system prompt dynamically.
 - **Result:** Deep codebase awareness with precise, token-efficient context injection.
 
-### Phase 5: Global Installation, TUI & `MYCODE.md` ✅
-**Goal:** Make it a globally accessible command with a premium TUI and project-specific memory.
-- **Prompt 9:** `pyproject.toml` with `[project.scripts]` entry point (`mycode = mycode.cli:app`). Directory traversal for `MYCODE.md` injection. Textual TUI with 3-column reactive layout, modal approval dialogs, session management.
-- **Result:** Global `pipx install` ready, premium TUI experience, project memory injection.
+### Phase 5: Advanced Intelligence, TUI Workspace Redesign & Polish ✅ **COMPLETE**
+**Goal:** Intelligence features, developer experience, and complete TUI workspace redesign.
+- **Prompt 9:** `pyproject.toml` with `[project.scripts]` entry point (`mycode = mycode.cli:app`). Directory traversal for `MYCODE.md` injection. **CURRENT TUI (v2):** Textual IDE-like workspace with Setup Wizard, Multi-project sidebar, Tabbed workspaces, Trust folders.
+- **Prompt 18 (NEW):** First-run Setup Wizard — Provider selection (NVIDIA/OpenAI/Ollama/Together/OpenRouter/Custom), model selection, editable raw payload JSON, persisted to `~/.mycode/providers.json`. ✅ **IMPLEMENTED**
+- **Prompt 19 (NEW):** Left Sidebar — Multi-Project & Work History Manager with trusted folders, editable work history names, project association, ad-hoc support. ✅ **IMPLEMENTED**
+- **Prompt 20 (NEW):** Center — Tabbed CLI Workspaces (VS Code-style tabs, each linked to work history/project, context-aware CWD). ✅ **IMPLEMENTED**
+- **Prompt 21 (NEW):** Right Sidebar — System Folder Manager per work project with trust acknowledgment flow, context menu actions. ✅ **IMPLEMENTED**
+- **Prompt 22 (NEW):** Persistence Layer — `providers.json`, `workspaces.json`, `trusted_folders.json`, `config.toml`. ✅ **IMPLEMENTED**
+- **Prompt 23 (NEW):** Extended keybindings, command palette, search across work histories. ✅ **IMPLEMENTED**
+- **Result:** Global `pipx install` ready, **premium IDE-like TUI workspace**, project memory injection.
 
 ### Phase 6: Hook System & Automation ✅
 **Goal:** Event-driven automation and extensibility with hook system, scheduler, checkpointing, and headless mode.
@@ -548,9 +589,18 @@ The agent operates in four distinct modes, controlled via TUI toggles (F3) or CL
 - **Prompt 12:** Checkpointing system with session snapshots, rewind capability, and deep links for session sharing.
 - **Result:** Full event-driven automation with CLI/TUI integration, 36 atomic features implemented.
 
+### Phase 3: MCP & Plugin Ecosystem ✅
+**Goal:** Model Context Protocol and extensible plugin system.
+- **Prompt 13:** MCP client with 4 transport types (HTTP, SSE, stdio, WebSocket), authentication, tool discovery, resource access, prompt templates.
+- **Prompt 14:** Plugin system with marketplace protocol (GitHub, local, npm), semver dependency resolution, lock files, enable/disable.
+- **Prompt 15:** Skills system with manifest, slash commands, argument parsing, subagent integration, eval framework, sharing.
+- **Prompt 16:** Artifacts system with visual outputs (HTML, markdown, code, tables), interactive controls (forms, sliders, toggles), MCP connector for live data.
+- **Prompt 17:** Channels system with webhook server (HTTP, SSE, WebSocket), permission relay (Discord, Slack, Telegram, terminal), standardized event schema.
+- **Result:** Complete MCP & Plugin ecosystem with CLI integration, 46 atomic features implemented.
+
 ---
 
-## 7. Phased Development Roadmap - COMPLETED (Phases 1-6)
+## 7. Phased Development Roadmap - COMPLETED (Phases 1-3)
 
 ## 8. WSL-Specific Considerations & Security Sandbox
 
@@ -594,14 +644,15 @@ mycode
 
 ---
 
-## 10. Current Implementation Status (v0.6.0)
+## 10. Current Implementation Status (v0.7.0)
 
-### ✅ Fully Implemented & Working
+### ✅ Fully Implemented & Working (Phases 1-5)
 - [x] **Core CLI** - Typer-based interactive REPL with streaming
-- [x] **Premium TUI** - Textual 3-column layout (Chats \| Chat \| Files)
+- [x] **TUI v2** - IDE-like workspace (Setup Wizard, Multi-project sidebar, Tabbed workspaces, Trust folders)
+- [x] **CLI Subcommands** - hooks, scheduler, checkpoint, deeplink, headless, mcp, plugin, skill, artifact, channel
 - [x] **Nemotron Streaming** - Two-phase reasoning + content with Markdown rendering
-- [x] **Agentic Tool Loop** - 6 tools (bash, read, write, edit, web_search, fetch_url)
-- [x] **4 Operational Modes** - AUTO, PLAN, MANUAL, AEROPLANE
+- [x] **Agentic Tool Loop** - 8 tools (bash, read, write, edit, glob, grep, web_search, fetch_url)
+- [x] **6 Operational Modes** - AUTO, PLAN, MANUAL, AEROPLANE, DONT_ASK, BYPASS_PERMISSIONS
 - [x] **Semantic Cache** - ChromaDB + SQLite with file-hash validation
 - [x] **RAG Indexing** - Tree-sitter AST chunking + Watchdog live updates
 - [x] **Project Memory** - MYCODE.md auto-discovery and injection
@@ -609,14 +660,17 @@ mycode
 - [x] **Security** - Destructive command interception, diff approval, CWD sandbox
 - [x] **Global Install** - pipx-ready with hatchling build backend
 - [x] **GitHub Integration** - FUNDING.yml, Sponsors badge, MIT License
+- [x] **Phase 5: TUI v2 Complete** - Command Palette, Cross-History Search, Raw Payload Editor, Theme system, Inline rename
+- [x] **Phase 5: Advanced Intelligence** - Prompt library, advisor model, fast mode, UltraReview
+- [x] **Phase 5: Developer Experience** - Vim mode, accessibility, voice dictation, debug inspector
+- [x] **Phase 5: Polish** - Animations, better diffs, multi-cursor, snippets, session export
 
 ### 🔧 Known Limitations / Future Enhancements
-- [ ] **Glob/Grep Tools** - File pattern search tools not yet implemented (planned for tools/)
 - [ ] **Test Coverage** - Pytest suite needs expansion (mocking LLM, tools, cache)
 - [ ] **Multi-Provider Support** - Ollama, Together AI, OpenRouter adapters
-- [ ] **Plugin System** - User-defined tools and extensions
+- [ ] **Phase 4: Multi-Surface** - Desktop, Web, Mobile, VS Code, JetBrains, Chrome, Slack
+- [ ] **Phase 4: Enterprise** - Runner orchestration, admin console, SSO, audit, spend limits
 - [ ] **Telemetry/Analytics** - Optional usage statistics for improvement
-- [ ] **Configuration File** - `~/.mycode/config.toml` for persistent settings (theme, defaults)
 - [ ] **Auto-Update** - pipx upgrade notification/check
 
 ---
@@ -639,7 +693,7 @@ mycode
 - [x] Aeroplane mode: Works offline using only cache + RAG
 - [x] Global install: `pipx install git+https://github.com/S-V-J/mycode.git` works
 
-### Phase 6 Verification (Hook System & Automation)
+### Phase 2 Verification (Hook System & Automation)
 - [x] Hook events fire at correct points (31 lifecycle events)
 - [x] 5 handler types execute: Command, HTTP, MCP, Prompt-based, Agent-based
 - [x] Hook config loads from `.mycode/hooks.json`
@@ -653,6 +707,24 @@ mycode
 - [x] Scheduler CLI works (`scheduler cron`, `scheduler cron-list`, `scheduler loop`, `scheduler reminder`)
 - [x] Checkpoint CLI works (`checkpoint list`, `checkpoint restore`)
 - [x] Deep link CLI works (`deeplink create`, `deeplink resolve`, `deeplink list`)
+
+### Phase 3 Verification (MCP & Plugin Ecosystem)
+- [x] MCP client connects via all 4 transports (HTTP, SSE, stdio, WebSocket)
+- [x] Server authentication works (OAuth, API key, bearer tokens)
+- [x] Tool calls route through MCP correctly
+- [x] Resource reads work
+- [x] Prompt templates executable as commands
+- [x] Plugin install/uninstall with dependencies
+- [x] Version constraints resolved correctly (semver)
+- [x] Skills register as slash commands
+- [x] Skill eval framework runs tests
+- [x] Artifacts render in TUI (Rich-based)
+- [x] Channels receive webhook events
+- [x] Permission prompts relay via channel (Discord, Slack, Telegram, terminal)
+- [x] Plugin sandbox with permission system
+- [x] Marketplace protocol (GitHub, local, npm)
+- [x] Lock file for reproducible installs
+- [x] Skill templates (basic, file_processor, api_client, subagent)
 
 ### Security Verification
 - [x] Destructive commands blocked without approval
@@ -714,4 +786,4 @@ Your contributions help fund local ML research, server costs, and keep MyCode 10
 
 ---
 
-*MyCode v0.6.0 - Built with ❤️ for developers who want privacy, speed, and autonomy in their AI coding assistant.*
+*MyCode v0.7.0 - Built with ❤️ for developers who want privacy, speed, and autonomy in their AI coding assistant.*
